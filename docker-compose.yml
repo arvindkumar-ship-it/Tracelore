@@ -1,0 +1,191 @@
+name: tracelore
+x-app-env: &app-env
+  DATABASE_URL: postgresql://tracelore_app:${TRACELORE_APP_PASSWORD:?Run scripts/setup.ps1}@postgres:5432/tracelore
+  REDIS_URL: redis://redis:6379/0
+  KAFKA_BROKER: redpanda:9092
+  S3_ENDPOINT: http://minio:9000
+  ARCHIVE_DIR: /app/artifacts/archive
+  MODEL_DIR: /app/models
+  SEQUENCE_MODE: ${SEQUENCE_MODE:-ngram}
+  TRACELORE_SECRET: ${TRACELORE_SECRET:?Run scripts/setup.ps1}
+  LLM_MODEL: ${LLM_MODEL:-openai/gpt-4o-mini}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  LLM_ENABLED: ${LLM_ENABLED:-false}
+  RAG_ENABLED: ${RAG_ENABLED:-false}
+  S3_BUCKET: ${S3_BUCKET:-tracelore}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  DASHBOARD_ORIGIN: ${DASHBOARD_ORIGIN:-http://localhost:3000}
+  INGEST_MAX_BATCH: ${INGEST_MAX_BATCH:-1000}
+  INGEST_RATE_LIMIT: ${INGEST_RATE_LIMIT:-50000}
+  LATE_GRACE_SECONDS: ${LATE_GRACE_SECONDS:-30}
+  SNAPSHOT_EVERY_EVENTS: ${SNAPSHOT_EVERY_EVENTS:-5000}
+  HOT_RETENTION_DAYS: ${HOT_RETENTION_DAYS:-7}
+  WARM_RETENTION_DAYS: ${WARM_RETENTION_DAYS:-30}
+  LOSSY_SAMPLING_ENABLED: ${LOSSY_SAMPLING_ENABLED:-false}
+  ENABLE_TIERING: ${ENABLE_TIERING:-false}
+  DEMO_TOKEN: ${DEMO_TOKEN}
+  DEMO_INGEST_KEY: ${DEMO_INGEST_KEY}
+  INGEST_ENDPOINT: http://ingest:8001/ingest
+  DEMO_GATEWAY_URL: http://gateway:8010
+  DEMO_INVENTORY_URL: http://inventory:8010
+  DEMO_PAYMENTS_URL: http://payments:8010
+x-infra: &infra
+  postgres: {condition: service_healthy}
+  redis: {condition: service_healthy}
+  redpanda: {condition: service_healthy}
+  minio: {condition: service_healthy}
+x-backend: &backend
+  build: {context: ., dockerfile: backend/Dockerfile, target: runtime}
+  image: tracelore-backend:local
+  environment: *app-env
+  restart: unless-stopped
+  init: true
+  stop_grace_period: 45s
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  tmpfs: [/tmp]
+  volumes: [archives:/app/artifacts, models:/app/models]
+  mem_limit: 1g
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: tracelore
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/setup.ps1}
+      TRACELORE_OWNER_PASSWORD: ${TRACELORE_OWNER_PASSWORD}
+      TRACELORE_APP_PASSWORD: ${TRACELORE_APP_PASSWORD}
+    ports: [127.0.0.1:5432:5432]
+    volumes: [pgdata:/var/lib/postgresql/data, ./infra/postgres/init:/docker-entrypoint-initdb.d:ro]
+    healthcheck: {test: [CMD-SHELL, 'pg_isready -U postgres -d tracelore'], interval: 5s, timeout: 3s, retries: 30}
+    command: [postgres, -c, max_connections=200, -c, shared_buffers=256MB, -c, timezone=UTC]
+    mem_limit: 2g
+    restart: unless-stopped
+  redis:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, 'yes', --maxmemory, 512mb, --maxmemory-policy, noeviction]
+    ports: [127.0.0.1:6379:6379]
+    volumes: [redisdata:/data]
+    healthcheck: {test: [CMD, redis-cli, ping], interval: 5s, timeout: 3s, retries: 20}
+    mem_limit: 768m
+    restart: unless-stopped
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v25.1.9
+    command: [redpanda, start, --mode, dev-container, --smp, '1', --memory, 1G, --reserve-memory, 0M, --kafka-addr, 'internal://0.0.0.0:9092,external://0.0.0.0:19092', --advertise-kafka-addr, 'internal://redpanda:9092,external://localhost:19092']
+    ports: [127.0.0.1:19092:19092]
+    volumes: [redpandadata:/var/lib/redpanda/data]
+    healthcheck: {test: [CMD, rpk, cluster, health, --exit-when-healthy], interval: 10s, timeout: 5s, retries: 30}
+    mem_limit: 1536m
+    restart: unless-stopped
+  minio:
+    build: {context: infra/minio}
+    image: tracelore-minio:local
+    command: server /data --console-address :9001
+    environment: {MINIO_ROOT_USER: '${S3_ACCESS_KEY}', MINIO_ROOT_PASSWORD: '${S3_SECRET_KEY}'}
+    ports: [127.0.0.1:9000:9000, 127.0.0.1:9001:9001]
+    volumes: [miniodata:/data]
+    healthcheck: {test: [CMD, curl, -f, http://localhost:9000/minio/health/live], interval: 10s, timeout: 5s, retries: 30}
+    mem_limit: 512m
+    restart: unless-stopped
+  migrate:
+    <<: *backend
+    profiles: [app]
+    command: [migrate]
+    environment:
+      <<: *app-env
+      OWNER_DATABASE_URL: postgresql://tracelore_owner:${TRACELORE_OWNER_PASSWORD}@postgres:5432/tracelore
+    depends_on: *infra
+    restart: 'no'
+  bootstrap:
+    <<: *backend
+    profiles: [app]
+    command: [bootstrap]
+    environment:
+      <<: *app-env
+      OWNER_DATABASE_URL: postgresql://tracelore_owner:${TRACELORE_OWNER_PASSWORD}@postgres:5432/tracelore
+    depends_on: {<<: *infra, migrate: {condition: service_completed_successfully}}
+    restart: 'no'
+  api:
+    <<: *backend
+    profiles: [app]
+    command: [api]
+    ports: [127.0.0.1:8000:8000]
+    depends_on: {<<: *infra, bootstrap: {condition: service_completed_successfully}}
+    healthcheck: {test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8000/healthz", timeout=3)'], interval: 10s, timeout: 5s, retries: 30}
+  ingest:
+    <<: *backend
+    profiles: [app]
+    command: [ingest]
+    deploy: {replicas: 2}
+    depends_on: {<<: *infra, bootstrap: {condition: service_completed_successfully}}
+    healthcheck: {test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8001/healthz", timeout=3)'], interval: 10s, timeout: 5s, retries: 30}
+  workers:
+    <<: *backend
+    profiles: [app]
+    command: [workers]
+    environment:
+      <<: *app-env
+      OWNER_DATABASE_URL: postgresql://tracelore_owner:${TRACELORE_OWNER_PASSWORD}@postgres:5432/tracelore
+    depends_on: {<<: *infra, bootstrap: {condition: service_completed_successfully}}
+    healthcheck: {test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:9100/metrics", timeout=3)'], interval: 10s, timeout: 5s, retries: 30}
+    mem_limit: 2g
+  detector:
+    <<: *backend
+    profiles: [app]
+    command: [detector]
+    depends_on: {<<: *infra, bootstrap: {condition: service_completed_successfully}}
+    healthcheck: {test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:9101/metrics", timeout=3)'], interval: 10s, timeout: 5s, retries: 30}
+    mem_limit: 2g
+  dashboard:
+    profiles: [app]
+    build: {context: dashboard, args: {API_INTERNAL_URL: 'http://api:8000'}}
+    environment: {API_INTERNAL_URL: 'http://api:8000'}
+    ports: [127.0.0.1:3000:3000]
+    depends_on: {api: {condition: service_healthy}}
+    healthcheck: {test: [CMD, node, -e, 'fetch("http://127.0.0.1:3000").then(r=>process.exit(r.ok?0:1))'], interval: 10s, timeout: 5s, retries: 30}
+    mem_limit: 768m
+    restart: unless-stopped
+  caddy:
+    profiles: [app]
+    image: caddy:2.10-alpine
+    ports: ['80:80', '443:443', '127.0.0.1:8001:8081']
+    environment: {SITE_ADDRESS: '${SITE_ADDRESS:-localhost}'}
+    volumes: [./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,caddydata:/data]
+    depends_on: {api: {condition: service_healthy}, ingest: {condition: service_healthy}, dashboard: {condition: service_healthy}}
+    healthcheck: {test: [CMD-SHELL, 'wget -q --spider http://localhost:8081/healthz'], interval: 30s, timeout: 5s, retries: 5}
+    mem_limit: 128m
+    restart: unless-stopped
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.2.1
+    volumes: [./infra/prometheus:/etc/prometheus:ro,prometheusdata:/prometheus]
+    ports: [127.0.0.1:9090:9090]
+    healthcheck: {test: [CMD, promtool, check, config, /etc/prometheus/prometheus.yml], interval: 30s, timeout: 5s, retries: 5}
+    mem_limit: 512m
+    restart: unless-stopped
+  grafana:
+    profiles: [monitoring]
+    image: grafana/grafana:11.6.0
+    environment: {GF_SECURITY_ADMIN_PASSWORD: '${TRACELORE_SECRET}'}
+    volumes: [./infra/grafana/provisioning:/etc/grafana/provisioning:ro,./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro,grafanadata:/var/lib/grafana]
+    ports: [127.0.0.1:3001:3000]
+    depends_on: {prometheus: {condition: service_healthy}}
+    healthcheck: {test: [CMD-SHELL, 'wget -q --spider http://localhost:3000/api/health'], interval: 15s, timeout: 5s, retries: 10}
+    mem_limit: 512m
+  gateway: &demo
+    <<: *backend
+    profiles: [demo]
+    command: [demo]
+    environment: {<<: *app-env, DEMO_SERVICE: gateway}
+    depends_on: {ingest: {condition: service_healthy}}
+    ports: [127.0.0.1:8010:8010]
+    healthcheck: {test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8010/healthz", timeout=3)'], interval: 10s, timeout: 5s, retries: 20}
+  inventory:
+    <<: *demo
+    environment: {<<: *app-env, DEMO_SERVICE: inventory}
+    ports: [127.0.0.1:8011:8010]
+  payments:
+    <<: *demo
+    environment: {<<: *app-env, DEMO_SERVICE: payments}
+    ports: [127.0.0.1:8012:8010]
+volumes: {pgdata: {},redisdata: {},redpandadata: {},miniodata: {},archives: {},models: {},caddydata: {},prometheusdata: {},grafanadata: {}}
