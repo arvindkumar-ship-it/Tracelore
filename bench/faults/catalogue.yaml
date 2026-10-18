@@ -1,0 +1,771 @@
+- id: A01
+  name: payments +3s
+  category: A
+  injection:
+    service: payments
+    flag: latency
+    params:
+      delay_ms: 3000
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: A02
+  name: slow indexed query
+  category: A
+  injection:
+    service: inventory
+    flag: slow_query
+    params:
+      delay_ms: 1000
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: A03
+  name: Redis delay
+  category: A
+  injection:
+    service: inventory
+    flag: redis_slow
+    params:
+      delay_ms: 500
+  ground_truth_node: cache:inventory
+  signature:
+    type: cache.get
+    node: cache:inventory
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: A04
+  name: inventory +2s
+  category: A
+  injection:
+    service: inventory
+    flag: latency
+    params:
+      delay_ms: 2000
+  ground_truth_node: svc:inventory
+  signature:
+    type: http.request
+    node: svc:inventory
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: A05
+  name: gateway CPU pressure
+  category: A
+  injection:
+    service: gateway
+    flag: cpu
+    params:
+      iterations: 2000000
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: A06
+  name: tail latency 1%
+  category: A
+  injection:
+    service: payments
+    flag: tail
+    params:
+      probability: 0.01
+      delay_ms: 5000
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      duration_ms_gt: 4900
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: A07
+  name: linear latency degradation
+  category: A
+  injection:
+    service: payments
+    flag: ramp
+    params:
+      per_request_ms: 20
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: A08
+  name: advisory lock contention
+  category: A
+  injection:
+    service: inventory
+    flag: lock
+    params:
+      delay_ms: 1000
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: B01
+  name: payments 500 at 30%
+  category: B
+  injection:
+    service: payments
+    flag: http_error
+    params:
+      probability: 0.3
+      status: 500
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      status: error
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: B02
+  name: database connection unavailable
+  category: B
+  injection:
+    service: inventory
+    flag: db_refused
+    params: {}
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      status: error
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: B03
+  name: Redis unavailable
+  category: B
+  injection:
+    service: inventory
+    flag: redis_down
+    params: {}
+  ground_truth_node: cache:inventory
+  signature:
+    type: cache.get
+    node: cache:inventory
+    condition:
+      status: error
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: B04
+  name: null inventory key
+  category: B
+  injection:
+    service: inventory
+    flag: null_key
+    params: {}
+  ground_truth_node: svc:inventory
+  signature:
+    type: http.request
+    node: svc:inventory
+    condition:
+      status: error
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: B05
+  name: timeout below p99
+  category: B
+  injection:
+    service: gateway
+    flag: timeout
+    params:
+      timeout_ms: 1
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      type_present: true
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: B06
+  name: authorization regression
+  category: B
+  injection:
+    service: payments
+    flag: http_error
+    params:
+      probability: 1
+      status: 401
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      attribute_equals:
+        status_code: 401
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: B07
+  name: one route deploy regression
+  category: B
+  injection:
+    service: gateway
+    flag: bad_deploy
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      status: error
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: B08
+  name: malformed payment JSON
+  category: B
+  injection:
+    service: payments
+    flag: bad_json
+    params: {}
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      type_present: true
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: C01
+  name: DB pool constrained to two
+  category: C
+  injection:
+    service: inventory
+    flag: small_pool
+    params:
+      delay_ms: 300
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: C02
+  name: threadpool saturation
+  category: C
+  injection:
+    service: gateway
+    flag: threadpool
+    params:
+      jobs: 64
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      duration_ms_gt: 200
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: C03
+  name: simulated memory ramp
+  category: C
+  injection:
+    service: inventory
+    flag: ramp
+    params:
+      per_request_ms: 15
+  ground_truth_node: svc:inventory
+  signature:
+    type: http.request
+    node: svc:inventory
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: C04
+  name: bounded connection leak
+  category: C
+  injection:
+    service: inventory
+    flag: connection_leak
+    params: {}
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      duration_ms_gt: 100
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: C05
+  name: queue backlog
+  category: C
+  injection:
+    service: gateway
+    flag: queue_backlog
+    params:
+      messages: 25
+  ground_truth_node: queue:orders
+  signature:
+    type: queue.publish
+    node: queue:orders
+    condition:
+      type_present: true
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: C06
+  name: rate-limit storm
+  category: C
+  injection:
+    service: payments
+    flag: http_error
+    params:
+      probability: 0.8
+      status: 429
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      attribute_equals:
+        status_code: 429
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: D01
+  name: zero TTL cache stampede
+  category: D
+  injection:
+    service: inventory
+    flag: cache_ttl_zero
+    params: {}
+  ground_truth_node: cache:inventory
+  signature:
+    type: cache.get
+    node: cache:inventory
+    condition:
+      attribute_equals:
+        hit: false
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: D02
+  name: invalidation always misses
+  category: D
+  injection:
+    service: inventory
+    flag: cache_miss
+    params: {}
+  ground_truth_node: cache:inventory
+  signature:
+    type: cache.get
+    node: cache:inventory
+    condition:
+      attribute_equals:
+        hit: false
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: D03
+  name: hot key contention
+  category: D
+  injection:
+    service: inventory
+    flag: hot_key
+    params:
+      delay_ms: 400
+  ground_truth_node: cache:inventory
+  signature:
+    type: cache.get
+    node: cache:inventory
+    condition:
+      duration_ms_gt: 300
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: D04
+  name: cache key version change
+  category: D
+  injection:
+    service: inventory
+    flag: cache_version
+    params: {}
+  ground_truth_node: cache:inventory
+  signature:
+    type: cache.get
+    node: cache:inventory
+    condition:
+      attribute_equals:
+        hit: false
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: D05
+  name: cache outage to DB overload
+  category: D
+  injection:
+    service: inventory
+    flag: cache_db_overload
+    params:
+      delay_ms: 200
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      duration_ms_gt: 150
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: E01
+  name: payment call skipped
+  category: E
+  injection:
+    service: gateway
+    flag: skip_payment
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      missing_operation:
+        type: http.client
+        downstream_service: payments
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: E02
+  name: duplicate payment
+  category: E
+  injection:
+    service: gateway
+    flag: duplicate_payment
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      operation_count:
+        type: http.client
+        downstream_service: payments
+        minimum: 2
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: E03
+  name: fivefold retries
+  category: E
+  injection:
+    service: gateway
+    flag: retry_storm
+    params:
+      attempts: 5
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      operation_count:
+        type: http.client
+        downstream_service: payments
+        minimum: 5
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: E04
+  name: dependency calls reordered
+  category: E
+  injection:
+    service: gateway
+    flag: wrong_order
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      call_order:
+      - payments
+      - inventory
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: E05
+  name: N+1 fifty queries
+  category: E
+  injection:
+    service: inventory
+    flag: n_plus_one
+    params:
+      queries: 50
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      operation_count:
+        type: db.query
+        minimum: 50
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: E06
+  name: cache check bypassed
+  category: E
+  injection:
+    service: inventory
+    flag: skip_cache
+    params: {}
+  ground_truth_node: svc:inventory
+  signature:
+    type: http.request
+    node: svc:inventory
+    condition:
+      missing_operation:
+        type: cache.get
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: F01
+  name: downstream timeout cascade
+  category: F
+  injection:
+    service: payments
+    flag: latency
+    params:
+      delay_ms: 7000
+  ground_truth_node: svc:payments
+  signature:
+    type: http.client
+    node: svc:payments
+    condition:
+      status: error
+      duration_ms_gt: 4500
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: F02
+  name: no circuit breaker
+  category: F
+  injection:
+    service: gateway
+    flag: no_breaker
+    params:
+      attempts: 5
+    additional:
+      payments:
+        flag: http_error
+        params:
+          probability: 1
+          status: 500
+  ground_truth_node: svc:payments
+  signature:
+    type: http.request
+    node: svc:payments
+    condition:
+      status: error
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: F03
+  name: shared DB saturation
+  category: F
+  injection:
+    service: inventory
+    flag: shared_db
+    params:
+      delay_ms: 800
+  ground_truth_node: db:inventory
+  signature:
+    type: db.query
+    node: db:inventory
+    condition:
+      duration_ms_gt: 700
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: F04
+  name: bounded dependency loop
+  category: F
+  injection:
+    service: gateway
+    flag: dependency_loop
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      operation_count:
+        type: http.client
+        minimum: 3
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: G01
+  name: specific payload slow
+  category: G
+  injection:
+    service: inventory
+    flag: payload_slow
+    params:
+      delay_ms: 1500
+  ground_truth_node: svc:inventory
+  signature:
+    type: http.request
+    node: svc:inventory
+    condition:
+      duration_ms_gt: 1400
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: G02
+  name: large payload cost
+  category: G
+  injection:
+    service: gateway
+    flag: large_payload
+    params:
+      bytes: 1000000
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      duration_ms_gt: 5
+  real_fix:
+    disable_fault: true
+  rag_split: index
+- id: G03
+  name: poison queue message
+  category: G
+  injection:
+    service: inventory
+    flag: poison
+    params: {}
+  ground_truth_node: queue:orders
+  signature:
+    type: queue.publish
+    node: queue:orders
+    condition:
+      status: error
+  real_fix:
+    disable_fault: true
+  rag_split: eval
+- id: N01
+  name: legitimate marketing burst
+  category: N
+  injection:
+    service: gateway
+    flag: marketing
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      type_present: true
+  real_fix: null
+  rag_split: control
+- id: N02
+  name: no-fault deployment
+  category: N
+  injection:
+    service: gateway
+    flag: deploy
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      type_present: true
+  real_fix: null
+  rag_split: control
+- id: N03
+  name: health-check flood
+  category: N
+  injection:
+    service: gateway
+    flag: health_flood
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      type_present: true
+  real_fix: null
+  rag_split: control
+- id: N04
+  name: nightly batch
+  category: N
+  injection:
+    service: gateway
+    flag: batch
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      type_present: true
+  real_fix: null
+  rag_split: control
+- id: N05
+  name: weekend traffic profile
+  category: N
+  injection:
+    service: gateway
+    flag: weekend
+    params: {}
+  ground_truth_node: svc:gateway
+  signature:
+    type: http.request
+    node: svc:gateway
+    condition:
+      type_present: true
+  real_fix: null
+  rag_split: control
