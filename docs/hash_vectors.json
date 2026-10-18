@@ -1,0 +1,215 @@
+[
+  {
+    "name": "canonical-0",
+    "kind": "json",
+    "value": {},
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "name": "canonical-1",
+    "kind": "json",
+    "value": {
+      "b": 2,
+      "a": 1
+    },
+    "sha256": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+  },
+  {
+    "name": "canonical-2",
+    "kind": "json",
+    "value": {
+      "unicode": "हिन्दी ☀"
+    },
+    "sha256": "a8e554146b1925d19726686a4aac530ba7d09d0946938ce74293990205f2eea2"
+  },
+  {
+    "name": "canonical-3",
+    "kind": "json",
+    "value": {
+      "nested": {
+        "z": [
+          true,
+          null,
+          3.125
+        ]
+      }
+    },
+    "sha256": "4e085c483f750b91d244b5cc8b641d51eea80dfd8a4a87bb6a153bc4b825545e"
+  },
+  {
+    "name": "canonical-4",
+    "kind": "json",
+    "value": {
+      "payload": ""
+    },
+    "sha256": "22faa0df107beb5ba68a18c480ec75066cbd8af74238e2dafaeeae3e5d4c272f"
+  },
+  {
+    "name": "canonical-5",
+    "kind": "json",
+    "value": [
+      1,
+      2,
+      3
+    ],
+    "sha256": "a615eeaee21de5179de080de8c3052c8da901138406ba71c38c032845f7d54f4"
+  },
+  {
+    "name": "canonical-6",
+    "kind": "json",
+    "value": {
+      "number": 1.23e-05
+    },
+    "sha256": "47d8192a221aaea7b48ec974ee5032aeee9a3daf732a73804b93e5ef5eebae47"
+  },
+  {
+    "name": "canonical-7",
+    "kind": "json",
+    "value": {
+      "key": "quoted\"\\\n"
+    },
+    "sha256": "691cb87307a300b8186dc2ac8096552e117efa3f89b08540d8953c2c7f2a3c5b"
+  },
+  {
+    "name": "canonical-8",
+    "kind": "json",
+    "value": {
+      "a": false,
+      "b": null
+    },
+    "sha256": "8c849c9909b8395c06a1acc76e23a902858920f7a4c5423037e0d496ad09879d"
+  },
+  {
+    "name": "canonical-9",
+    "kind": "json",
+    "value": {
+      "emoji": "🌌"
+    },
+    "sha256": "1d8365670cb99a77662005941a9a62c7ec2dfc102756fe0b4079d868f0791c79"
+  },
+  {
+    "name": "canonical-10",
+    "kind": "json",
+    "value": {
+      "": 1,
+      "𐀀": 2
+    },
+    "sha256": "8706b5798a29d65739b3d1bbb1d009f87d005c71c8130c5353c4990c15ddfec8"
+  },
+  {
+    "name": "event-0",
+    "kind": "event",
+    "value": {
+      "event_id": "00000000-0000-4000-8000-000000000003",
+      "trace_id": "00000000-0000-0000-0000-000000000001",
+      "span_id": "00000000-0000-0000-0000-000000000002",
+      "parent_span_id": null,
+      "stream_id": "gateway:vectors",
+      "timestamp": "2026-01-01T00:00:00.000000Z",
+      "ended_at": "2026-01-01T00:00:00.000000Z",
+      "duration_ms": 0.0,
+      "service": "gateway",
+      "type": "http.client",
+      "status": "ok",
+      "attributes": {
+        "method": "POST",
+        "host": "payments",
+        "downstream_service": "payments",
+        "status_code": 200,
+        "timeout_ms": null
+      },
+      "payload_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sequence": 1,
+      "prev_event_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "event_hash": "2d26785157e5a26a095c927415cc493f596275a29a62831a6f9503d47921b5c2"
+    },
+    "sha256": "2d26785157e5a26a095c927415cc493f596275a29a62831a6f9503d47921b5c2"
+  },
+  {
+    "name": "event-1",
+    "kind": "event",
+    "value": {
+      "event_id": "00000000-0000-4000-8000-000000000004",
+      "trace_id": "00000000-0000-0000-0000-000000000001",
+      "span_id": "00000000-0000-0000-0000-000000000002",
+      "parent_span_id": null,
+      "stream_id": "gateway:vectors",
+      "timestamp": "2026-01-01T00:00:00.000000Z",
+      "ended_at": "2026-01-01T00:00:00.001000Z",
+      "duration_ms": 1.0,
+      "service": "gateway",
+      "type": "http.client",
+      "status": "ok",
+      "attributes": {
+        "method": "POST",
+        "host": "payments",
+        "downstream_service": "payments",
+        "status_code": 200,
+        "timeout_ms": null
+      },
+      "payload_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sequence": 2,
+      "prev_event_hash": "2d26785157e5a26a095c927415cc493f596275a29a62831a6f9503d47921b5c2",
+      "event_hash": "40fcc4ba1fa44f6d8587e85a43f0a21aadbedef1798dcf5798895b5738ab8d34"
+    },
+    "sha256": "40fcc4ba1fa44f6d8587e85a43f0a21aadbedef1798dcf5798895b5738ab8d34"
+  },
+  {
+    "name": "event-2",
+    "kind": "event",
+    "value": {
+      "event_id": "00000000-0000-4000-8000-000000000005",
+      "trace_id": "00000000-0000-0000-0000-000000000001",
+      "span_id": "00000000-0000-0000-0000-000000000002",
+      "parent_span_id": null,
+      "stream_id": "gateway:vectors",
+      "timestamp": "2026-01-01T00:00:00.000000Z",
+      "ended_at": "2026-01-01T00:00:00.001125Z",
+      "duration_ms": 1.125,
+      "service": "gateway",
+      "type": "http.client",
+      "status": "ok",
+      "attributes": {
+        "method": "POST",
+        "host": "payments",
+        "downstream_service": "payments",
+        "status_code": 200,
+        "timeout_ms": null
+      },
+      "payload_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sequence": 3,
+      "prev_event_hash": "40fcc4ba1fa44f6d8587e85a43f0a21aadbedef1798dcf5798895b5738ab8d34",
+      "event_hash": "2bbd43d1d721469ade4543cb9c6748da40641aa250694cec9ef32ad8a8f7bd2c"
+    },
+    "sha256": "2bbd43d1d721469ade4543cb9c6748da40641aa250694cec9ef32ad8a8f7bd2c"
+  },
+  {
+    "name": "event-3",
+    "kind": "event",
+    "value": {
+      "event_id": "00000000-0000-4000-8000-000000000006",
+      "trace_id": "00000000-0000-0000-0000-000000000001",
+      "span_id": "00000000-0000-0000-0000-000000000002",
+      "parent_span_id": null,
+      "stream_id": "gateway:vectors",
+      "timestamp": "2026-01-01T00:00:00.000000Z",
+      "ended_at": "2026-01-01T00:00:00.123456Z",
+      "duration_ms": 123.456,
+      "service": "gateway",
+      "type": "http.client",
+      "status": "ok",
+      "attributes": {
+        "method": "POST",
+        "host": "payments",
+        "downstream_service": "payments",
+        "status_code": 200,
+        "timeout_ms": null
+      },
+      "payload_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sequence": 4,
+      "prev_event_hash": "2bbd43d1d721469ade4543cb9c6748da40641aa250694cec9ef32ad8a8f7bd2c",
+      "event_hash": "0c697ccc3f1f1dc3abf3f5833ffefe4783fb692d760f2760896739221a2ce71d"
+    },
+    "sha256": "0c697ccc3f1f1dc3abf3f5833ffefe4783fb692d760f2760896739221a2ce71d"
+  }
+]

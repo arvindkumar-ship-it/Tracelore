@@ -1,0 +1,8 @@
+{
+  "name": "@tracelore/sdk", "version": "0.1.0", "private": false, "type": "module",
+  "description": "Hash-chained observed-event capture for Node.js",
+  "main": "dist/index.js", "types": "dist/index.d.ts", "files": ["dist"],
+  "engines": {"node": ">=20"},
+  "scripts": {"build": "tsc", "test": "npm run build && node --test tests/*.mjs"},
+  "devDependencies": {"@types/node": "^22.0.0", "typescript": "^5.8.0"}
+}
