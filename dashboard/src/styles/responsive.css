@@ -1,127 +1,152 @@
-@media (max-width: 1050px) {
-  aside {
-    width: 190px;
-    padding: 24px 14px;
-  }
-  .main {
-    margin-left: 190px;
-    width: calc(100% - 190px);
-  }
+@media (min-width: 1600px) {
   main {
-    padding: 28px 24px;
+    padding: 44px 48px 60px;
   }
-  .metrics {
-    grid-template-columns: repeat(2, 1fr);
+  .topbar {
+    padding: 0 48px;
   }
-  .grid-two {
-    grid-template-columns: 1fr;
-  }
-  header {
-    padding: 0 24px;
+  .app-footer {
+    margin: 0 48px;
   }
 }
-@media (max-width: 640px) {
-  aside {
-    position: static;
-    width: 100%;
-    border: 0;
-    border-bottom: 1px solid var(--line);
-    padding: 15px;
+@media (max-width: 1300px) {
+  .overview-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .shell {
-    display: block;
+  .service-panel .service-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
   }
-  .brand {
-    font-size: 23px;
+  .service-panel .service-item {
+    border-bottom: 0;
   }
-  .workspace,
-  .aside-bottom {
-    display: none;
+  .service-title {
+    flex-wrap: wrap;
   }
-  nav {
-    margin-top: 15px;
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 5px;
+  .service-title .badge {
+    margin-left: 0;
   }
-  nav a {
-    font-size: 10px;
-    white-space: nowrap;
-    padding: 7px;
+  .service-meta {
+    margin-left: 0;
   }
-  nav a span {
-    display: none;
+  .service-empty {
+    grid-column: 1/-1;
+    padding: 30px 10px;
+  }
+  .service-empty h3 {
+    display: inline;
+    margin-left: 10px;
+  }
+  .service-empty svg {
+    margin: 0;
+  }
+  .service-empty p {
+    margin-top: 10px;
+  }
+  .settings-section {
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 28px;
+  }
+  .replay-form {
+    flex-wrap: wrap;
+  }
+  .replay-controls {
+    flex: 1;
+    justify-content: flex-end;
+  }
+  .replay-controls label {
+    flex: 1;
+    max-width: 330px;
+  }
+}
+@media (max-width: 1100px) {
+  .sidebar {
+    width: 210px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
   .main {
-    margin: 0;
-    width: 100%;
-  }
-  header {
-    height: 49px;
-    padding: 0 16px;
+    margin-left: 210px;
   }
   main {
-    padding: 25px 16px;
+    padding: 30px 25px 45px;
   }
-  h1 {
-    font-size: 28px;
+  .topbar {
+    padding: 0 25px;
   }
-  .page-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .metrics {
-    gap: 10px;
+  .app-footer {
+    margin: 0 25px;
   }
   .metric {
-    padding: 15px;
+    padding: 0 18px;
+  }
+  .metric-label > svg {
+    display: none;
   }
   .metric-value {
-    font-size: 26px;
+    font-size: 27px;
   }
-  .panel {
-    padding: 18px;
+  .metric-foot {
+    font-size: 9px;
   }
-  .panel-flush {
-    padding: 0;
+  .grid-two,
+  .simulation-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
   }
-  .timeline-wrap {
-    display: none;
+  .simulation-result {
+    min-height: 0;
   }
-  .trace-mobile {
-    display: block;
-    height: 330px;
-    overflow: auto;
+  .simulation-empty {
+    padding: 35px 15px;
   }
-  .trace-mobile button {
-    display: block;
-    background: none;
-    border: 0;
-    color: var(--text);
-    text-align: left;
+  .intervention-form .form-grid {
+    gap: 0 18px;
+  }
+  .settings-section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .settings-intro {
+    display: grid;
+    grid-template-columns: 35px 1fr;
+    column-gap: 12px;
+  }
+  .settings-intro > .section-icon {
+    grid-row: span 2;
+    margin-bottom: 0;
+  }
+  .settings-intro h2 {
+    margin-bottom: 3px;
+  }
+  .settings-intro p {
     font-size: 11px;
-    line-height: 24px;
   }
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  footer {
-    padding: 18px 16px;
-  }
-  footer span {
-    display: none;
+  .graph-panel .panel-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
   .graph-canvas {
-    height: 480px;
+    height: 500px;
   }
-  .bar-row {
-    grid-template-columns: 65px 1fr 65px;
-    gap: 7px;
+  .replay-form {
+    gap: 22px;
+  }
+  .replay-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .replay-controls label {
+    max-width: none;
+  }
+  .login-layout {
+    gap: 50px;
+  }
+  .login-story h1 {
+    font-size: 38px;
   }
   .login-card {
-    padding: 27px;
-  }
-  .login-card .brand .badge {
-    display: none;
+    padding: 30px;
   }
 }

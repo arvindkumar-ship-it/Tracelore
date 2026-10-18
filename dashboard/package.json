@@ -9,7 +9,8 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "types": "openapi-typescript ../docs/openapi.json -o src/lib/generated.ts"
+    "types": "openapi-typescript ../docs/openapi.json -o src/lib/generated.ts",
+    "test:ui": "npm run build && playwright test --config playwright.ui.config.ts"
   },
   "dependencies": {
     "@dagrejs/dagre": "^1.1.5",

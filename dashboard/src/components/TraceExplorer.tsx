@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "@/lib/api";
 import { stateView, traceView } from "@/lib/schemas";
+import { Icon } from "./Icon";
 import { QueryState } from "./QueryState";
 import { StateInspector } from "./StateInspector";
 import { TimelineCanvas } from "./timeline/TimelineCanvas";
@@ -82,25 +83,42 @@ export function TraceExplorer({
     );
   return (
     <>
-      <section className="panel">
-        <div
-          className="actions"
-          style={{ justifyContent: "space-between", marginBottom: 22 }}
-        >
-          <h2 style={{ margin: 0 }}>Trace timeline</h2>
-          <span className="badge">DETERMINISTIC REPLAY</span>
+      <section className="panel trace-panel">
+        <div className="section-heading">
+          <div className="section-title">
+            <Icon name="activity" size={17} />
+            <h2>Trace timeline</h2>
+            <span className="count">
+              {trace.spans.id.length.toLocaleString()} spans
+            </span>
+          </div>
+          <span className="badge">Deterministic replay</span>
         </div>
-        <TimelineCanvas
-          trace={trace}
-          selected={selected}
-          onSelect={setSelected}
-        />
-        <ScrubBar
-          count={order.length}
-          index={index}
-          onChange={(next) => setSelected(order[next].id)}
-        />
-        <span className="subtle mono">event {selected}</span>
+        {trace.spans.id.length ? (
+          <>
+            <TimelineCanvas
+              trace={trace}
+              selected={selected}
+              onSelect={setSelected}
+            />
+            <ScrubBar
+              count={order.length}
+              index={index}
+              onChange={(next) => {
+                if (order[next]) setSelected(order[next].id);
+              }}
+            />
+            <div className="trace-event-id mono">event {selected}</div>
+          </>
+        ) : (
+          <div className="empty">
+            <span className="empty-icon">
+              <Icon name="activity" size={23} />
+            </span>
+            <h3>No spans in this trace</h3>
+            <p>This trace has no recorded spans to replay.</p>
+          </div>
+        )}
       </section>
       <QueryState error={state.error} retry={() => void state.refetch()} />
       <StateInspector value={state.data} />

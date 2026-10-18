@@ -1,218 +1,160 @@
-.timeline-wrap {
-  position: relative;
-  height: 340px;
-  overflow: auto;
-  background: #0d151f;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-.timeline-canvas {
-  display: block;
-  position: sticky;
-  top: 0;
-  touch-action: none;
-}
-.timeline-toolbar {
+.incident-summary {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
   align-items: center;
-  margin-bottom: 16px;
-}
-.legend {
-  display: flex;
-  gap: 15px;
-  font-size: 10px;
-  color: var(--muted);
   flex-wrap: wrap;
-}
-.legend i {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 2px;
-  margin-right: 5px;
-}
-.scrub {
-  width: 100%;
-  accent-color: var(--lime);
-  padding: 0;
-  border: 0;
-  background: none;
-  margin: 16px 0;
-}
-.trace-tooltip {
-  padding: 9px 12px;
-  border: 1px solid var(--line);
-  background: #1c2939;
-  font-size: 11px;
-  pointer-events: none;
-  position: absolute;
-  z-index: 2;
-  max-width: 320px;
-}
-.trace-mobile {
-  display: none;
-}
-.state-tabs {
-  display: flex;
-  gap: 7px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.state-tabs button {
-  font-size: 10px;
-  padding: 5px 9px;
-}
-.state-tabs .selected {
-  background: #253a2a;
-  color: var(--lime);
-  border-color: #4a6647;
-}
-.inspector-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 9px 0;
+  gap: 22px;
+  margin: -5px 0 28px;
+  padding-bottom: 24px;
   border-bottom: 1px solid var(--line);
+  color: var(--muted);
   font-size: 11px;
-  gap: 12px;
 }
-.changed {
-  color: var(--lime);
+.incident-summary strong {
+  color: var(--text);
+  font-weight: 600;
+  margin-right: 3px;
 }
-.graph-canvas {
-  height: 620px;
+.resolution-form .section-heading {
+  align-items: flex-start;
+}
+.resolution-form .section-heading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+}
+.investigation-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.root-cause {
+  padding: 17px 19px;
+  border: 1px solid #ebdfd0;
+  border-radius: 7px;
+  background: #fbf7ef;
+  margin: 21px 0;
+}
+.root-cause .eyebrow {
+  font-size: 10px;
+  color: #7b6546;
+}
+.root-cause h3 {
+  color: #85633b;
+  margin: 7px 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+.root-confidence {
+  font-size: 10px;
+  color: #7b684e;
+}
+.assessment-mechanism {
+  font-size: 12px;
+  line-height: 1.85;
+}
+.suggested-fix {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  margin-top: 23px;
+}
+.section-kicker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #5a6555;
+  font-size: 11px;
+  font-weight: 500;
+}
+.suggested-fix p {
+  font-size: 12px;
+  margin-bottom: 0;
+  line-height: 1.8;
+}
+.pending-analysis {
+  padding: 35px 12px;
+  text-align: center;
+}
+.pending-analysis > svg {
+  color: #a59a86;
+  margin-bottom: 15px;
+}
+.pending-analysis p {
+  max-width: 360px;
+  margin: 8px auto 0;
+  font-size: 12px;
+}
+.evidence-item {
+  display: flex;
+  gap: 13px;
+  padding: 19px 0;
+  border-bottom: 1px solid var(--line);
+}
+.evidence-item:first-child {
+  padding-top: 0;
+}
+.evidence-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.evidence-id {
+  min-width: 24px;
+  height: 24px;
+  padding: 2px 5px;
+  background: var(--soft);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  overflow: hidden;
-  background: #0d151f;
-}
-.react-flow__controls button {
-  background: #1d2d3f;
-  color: #dae6f3;
-  border-color: #314355;
-}
-.react-flow__attribution {
-  display: none;
-}
-.simulation-bars {
-  margin-top: 22px;
-}
-.bar-row {
-  display: grid;
-  grid-template-columns: 100px 1fr 80px;
-  gap: 14px;
-  align-items: center;
-  margin: 10px 0;
-  font-size: 12px;
-}
-.bar-track {
-  height: 10px;
-  background: #243343;
   border-radius: 4px;
-  overflow: hidden;
+  color: #766954;
+  font-size: 10px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
-.bar-fill {
-  height: 100%;
-  background: var(--cyan);
-  border-radius: 4px;
+.evidence-content {
+  flex: 1;
+  min-width: 0;
 }
-.bar-fill.after {
-  background: var(--lime);
-}
-.assumptions {
-  font-size: 11px;
-  color: var(--muted);
-  padding-left: 20px;
-}
-.assumptions li {
-  margin-bottom: 9px;
-}
-.error {
-  color: var(--red);
-}
-.loading {
-  padding: 80px;
-  color: var(--muted);
-}
-.skeleton {
-  height: 240px;
-  background: linear-gradient(90deg, #111923, #1a2633, #111923);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
-}
-.login {
-  min-height: 100vh;
+.evidence-meta {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: radial-gradient(ellipse at 50% 25%, #172b30, transparent 65%);
-}
-.login-card {
-  max-width: 480px;
-  width: 100%;
-  padding: 38px;
-}
-.login-card .brand {
-  margin-bottom: 45px;
-}
-.login-card .brand .badge {
-  margin-left: auto;
-  font-size: 8px;
-  letter-spacing: 0;
-}
-.login-card button {
-  width: 100%;
-  margin-top: 8px;
-}
-.login-card .subtle {
-  font-size: 11px;
-  margin-top: 20px;
-}
-.notice {
-  border-left: 2px solid var(--lime);
-  padding: 10px 15px;
-  background: #19251f;
-  color: #b4caaf;
-  font-size: 12px;
-  margin: 16px 0;
-}
-.actions {
-  display: flex;
-  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-}
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 16px;
-}
-pre {
-  white-space: pre-wrap;
-  word-break: break-all;
-  color: #a9cfb6;
-  font-size: 11px;
-  background: #0b1319;
-  padding: 16px;
-  border-radius: 7px;
-}
-.divider {
-  border-top: 1px solid var(--line);
-  margin: 24px 0;
-}
-.metric-chart {
-  height: 68px;
-  width: 100%;
-  margin-top: 12px;
-}
-.hint {
-  font-size: 10px;
+  gap: 8px;
   color: var(--muted);
+}
+.evidence-meta .mono {
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.evidence-item p {
+  margin: 9px 0 5px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.evidence-action {
+  color: var(--accent);
+  font-size: 11px;
+  padding: 5px 0;
+}
+.evidence-details {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.evidence-details summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 4px 0;
+}
+.evidence-details dl {
+  margin: 6px 0;
+  border-left: 1px solid var(--line);
+  padding-left: 10px;
+}
+.evidence-details dl > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 5px 0;
+}
+.evidence-details dt {
+  min-width: 80px;
+}
+.evidence-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }

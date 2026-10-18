@@ -4,12 +4,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { request } from "@/lib/api";
 import { keyView, settingsView } from "@/lib/schemas";
+import { NewKeyNotice } from "@/components/NewKeyNotice";
+import { SDKSetup } from "@/components/SDKSetup";
+import { Icon } from "@/components/Icon";
 import { PageHeading, QueryState } from "@/components/QueryState";
 export default function SettingsPage() {
   const client = useQueryClient(),
     [name, setName] = useState(""),
     [newKey, setNewKey] = useState(""),
-    [copied, setCopied] = useState(false);
+    [confirmRevoke, setConfirmRevoke] = useState("");
   const settings = useQuery({
     queryKey: ["settings"],
     queryFn: () => request("/settings", settingsView),
@@ -28,14 +31,16 @@ export default function SettingsPage() {
     onSuccess: (value) => {
       setNewKey(value.key);
       setName("");
-      setCopied(false);
       void client.invalidateQueries({ queryKey: ["keys"] });
     },
   });
   const revoke = useMutation({
     mutationFn: (hash: string) =>
       request(`/settings/keys/${hash}`, keyView, { method: "DELETE" }),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ["keys"] }),
+    onSuccess: () => {
+      setConfirmRevoke("");
+      void client.invalidateQueries({ queryKey: ["keys"] });
+    },
   });
   const sampling = useMutation({
     mutationFn: (enabled: boolean) =>
@@ -48,23 +53,37 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeading
-        eyebrow="05 / WORKSPACE"
-        title="Connect. Retain. Verify."
-        description="Manage ingestion credentials and inspect the operational configuration."
+        eyebrow="Workspace preferences"
+        title="Settings"
+        description="Connect your services, manage access, and keep your observatory running the way you need."
       />
-      <div className="grid-two">
-        <section className="panel">
+      <nav className="settings-jump" aria-label="Settings sections">
+        <a href="#ingestion-keys">Ingestion keys</a>
+        <a href="#retention">Retention & analysis</a>
+        <a href="#sdk-setup">Instrumentation</a>
+      </nav>
+      <section className="settings-section" id="ingestion-keys">
+        <div className="settings-intro">
+          <span className="section-icon">
+            <Icon name="key" size={20} />
+          </span>
           <h2>Ingestion API keys</h2>
+          <p>Credentials for your SDKs, separate from dashboard access.</p>
+        </div>
+        <div className="panel settings-content">
+          <div className="section-heading">
+            <h3>Manage API keys</h3>
+            <span className="badge">SDK access</span>
+          </div>
           <p className="subtle">
-            SDK credentials are separate from dashboard access. New keys are
-            shown once.
+            Give each service a named key. New keys are shown only once.
           </p>
           <form
+            className="key-create-form"
             onSubmit={(event) => {
               event.preventDefault();
               create.mutate();
             }}
-            className="form-grid"
           >
             <label>
               Key name
@@ -72,68 +91,108 @@ export default function SettingsPage() {
                 value={name}
                 required
                 maxLength={100}
-                placeholder="Checkout production"
+                placeholder="e.g. Checkout production"
                 onChange={(event) => setName(event.target.value)}
               />
             </label>
-            <div style={{ paddingTop: 25 }}>
-              <button disabled={create.isPending}>Create key</button>
-            </div>
+            <button disabled={create.isPending}>
+              <Icon name="plus" size={15} />
+              {create.isPending ? "Creating…" : "Create key"}
+            </button>
           </form>
           {newKey && (
-            <div className="notice">
-              <p style={{ color: "inherit" }}>
-                Copy this key now, then store it as TRACELORE_API_KEY.
-              </p>
-              <pre>{newKey}</pre>
-              <div className="actions">
-                <button
-                  className="ghost"
-                  onClick={() => {
-                    void navigator.clipboard
-                      .writeText(newKey)
-                      .then(() => setCopied(true));
-                  }}
-                >
-                  {copied ? "Copied" : "Copy key"}
-                </button>
-                <button className="ghost" onClick={() => setNewKey("")}>
-                  Dismiss
-                </button>
-              </div>
-            </div>
+            <NewKeyNotice
+              key={newKey}
+              value={newKey}
+              onDismiss={() => setNewKey("")}
+            />
           )}
           <QueryState
             loading={keys.isPending}
-            error={keys.error ?? create.error ?? revoke.error}
+            error={keys.error}
             retry={() => void keys.refetch()}
           />
-          {keys.data?.map((key) => (
-            <div className="inspector-row" key={key.key_hash}>
-              <div>
-                <b>{key.name}</b>
-                <div className="subtle mono">{key.key_hash.slice(0, 16)}…</div>
+          {create.error && (
+            <p role="alert" className="error">
+              {create.error.message}
+            </p>
+          )}
+          {revoke.error && (
+            <p role="alert" className="error">
+              {revoke.error.message}
+            </p>
+          )}
+          <div className="key-list">
+            {keys.data?.map((key) => (
+              <div className="key-row" key={key.key_hash}>
+                <div className="key-identity">
+                  <Icon name="key" size={16} />
+                  <div>
+                    <strong>{key.name}</strong>
+                    <span className="mono">{key.key_hash.slice(0, 16)}…</span>
+                  </div>
+                </div>
+                <div className="key-row-actions">
+                  {key.revoked_at ? (
+                    <span className="badge">Revoked</span>
+                  ) : confirmRevoke === key.key_hash ? (
+                    <div className="revoke-confirm">
+                      <span>Revoke this key?</span>
+                      <button
+                        className="text-button compact"
+                        onClick={() => setConfirmRevoke("")}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="danger compact"
+                        disabled={revoke.isPending}
+                        onClick={() => revoke.mutate(key.key_hash)}
+                      >
+                        {revoke.isPending ? "Revoking…" : "Confirm revoke"}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="badge green">
+                        <span className="badge-dot" />
+                        Active
+                      </span>
+                      <button
+                        className="text-button compact revoke-button"
+                        onClick={() => setConfirmRevoke(key.key_hash)}
+                      >
+                        Revoke
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-              {key.revoked_at ? (
-                <span className="badge">REVOKED</span>
-              ) : (
-                <button
-                  className="ghost"
-                  disabled={revoke.isPending}
-                  onClick={() => revoke.mutate(key.key_hash)}
-                >
-                  Revoke
-                </button>
-              )}
+            ))}
+          </div>
+          {keys.data?.length === 0 && (
+            <div className="key-empty">
+              <Icon name="key" size={20} />
+              <p>Create your first API key to connect a service.</p>
             </div>
-          ))}
-          <p className="hint" style={{ marginTop: 18 }}>
-            Ingest authentication caches successful keys for up to 60 seconds
-            after revocation.
+          )}
+          <p className="settings-footnote">
+            <Icon name="info" size={14} />
+            Successful keys may remain cached for up to 60 seconds after
+            revocation.
           </p>
-        </section>
-        <section className="panel">
+        </div>
+      </section>
+      <section className="settings-section" id="retention">
+        <div className="settings-intro">
+          <span className="section-icon">
+            <Icon name="database" size={20} />
+          </span>
           <h2>Retention & analysis</h2>
+          <p>How your recorded history is retained and analyzed.</p>
+        </div>
+        <div className="panel settings-content">
+          <h3>Operational configuration</h3>
           <QueryState
             loading={settings.isPending}
             error={settings.error}
@@ -142,63 +201,69 @@ export default function SettingsPage() {
           {settings.data && (
             <>
               {!settings.data.tiering_enabled && (
-                <p className="notice">
-                  Archival is disabled. Configured thresholds apply after
-                  ENABLE_TIERING is enabled; the hot ledger is retained in the
-                  meantime.
-                </p>
+                <div className="notice">
+                  Archival is disabled. Retention thresholds apply after{" "}
+                  <code>ENABLE_TIERING</code> is enabled. The hot ledger is
+                  retained in the meantime.
+                </div>
               )}
-              <div className="inspector-row">
-                <span>Hot ledger</span>
-                <b>{settings.data.hot_retention_days} days</b>
+              <dl className="config-list">
+                <div>
+                  <dt>Hot ledger retention</dt>
+                  <dd>{settings.data.hot_retention_days} days</dd>
+                </div>
+                <div>
+                  <dt>Warm archive retention</dt>
+                  <dd>{settings.data.warm_retention_days} days</dd>
+                </div>
+                <div>
+                  <dt>LLM reports</dt>
+                  <dd>
+                    <span className="badge">
+                      {settings.data.llm_enabled ? "Enabled" : "Rules only"}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Semantic retrieval</dt>
+                  <dd>
+                    <span className="badge">
+                      {settings.data.rag_enabled ? "Enabled" : "Disabled"}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+              <div className="sampling-setting">
+                <div>
+                  <label htmlFor="sampling">Summarized analytics</label>
+                  <p>Optional summaries group similar traces for analysis.</p>
+                </div>
+                <span className="switch">
+                  <input
+                    id="sampling"
+                    type="checkbox"
+                    role="switch"
+                    checked={settings.data.lossy_sampling_enabled}
+                    onChange={(event) => sampling.mutate(event.target.checked)}
+                    disabled={sampling.isPending}
+                  />
+                  <span className="switch-track" />
+                </span>
               </div>
-              <div className="inspector-row">
-                <span>Warm archives</span>
-                <b>{settings.data.warm_retention_days} days</b>
-              </div>
-              <div className="inspector-row">
-                <span>LLM reports</span>
-                <b>{settings.data.llm_enabled ? "Enabled" : "Rules only"}</b>
-              </div>
-              <div className="inspector-row">
-                <span>Semantic retrieval</span>
-                <b>{settings.data.rag_enabled ? "Enabled" : "Disabled"}</b>
-              </div>
-              <div className="divider" />
-              <label>
-                <input
-                  type="checkbox"
-                  style={{ width: "auto", display: "inline", marginRight: 10 }}
-                  checked={settings.data.lossy_sampling_enabled}
-                  onChange={(event) => sampling.mutate(event.target.checked)}
-                  disabled={sampling.isPending}
-                />
-                Enable optional summarized analytics
-              </label>
-              <p className="error" style={{ fontSize: 11 }}>
-                Summaries represent clusters of similar traces and cannot be
-                replayed. Lossless archives remain the replay source.
+              <p className="hint">
+                Summaries cannot be replayed. Lossless archives remain the
+                source for replay.
               </p>
               {sampling.error && (
-                <p className="error">{sampling.error.message}</p>
+                <p role="alert" className="error">
+                  {sampling.error.message}
+                </p>
               )}
             </>
           )}
-        </section>
-      </div>
-      <section className="panel" id="sdk-setup">
-        <h2>Instrument a FastAPI service</h2>
-        <p>
-          Install sdk/python, set TRACELORE_API_KEY, TRACELORE_SERVICE, and
-          TRACELORE_ENDPOINT, then attach the ASGI middleware.
-        </p>
-        <pre>{`from tracelore import Tracelore, load_config\nfrom tracelore.integrations.fastapi import TraceloreMiddleware\n\nclient = Tracelore(load_config())\nclient.start()\napp.add_middleware(TraceloreMiddleware, client=client)\n# Call client.shutdown() in the application's lifespan teardown.`}</pre>
-        <p className="subtle">
-          Enable HTTP, asyncpg/SQLAlchemy and Redis adapters to reconstruct
-          dependency paths. SDK events contain hashes and metadata rather than
-          request bodies or SQL.
-        </p>
+        </div>
       </section>
+      <SDKSetup services={settings.data?.services ?? []} />
     </>
   );
 }

@@ -1,0 +1,62 @@
+@media (max-width: 600px) {
+  .login {
+    padding: 25px 22px 20px;
+  }
+  .login-top .brand {
+    font-size: 23px;
+  }
+  .login-top > span:last-child {
+    font-size: 9px;
+  }
+  .login-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 45px 0;
+    max-width: 410px;
+  }
+  .login-story {
+    width: 100%;
+  }
+  .login-story .eyebrow {
+    font-size: 11px;
+  }
+  .login-story h1 {
+    font-size: 33px;
+    line-height: 1.2;
+    margin: 12px 0 15px;
+  }
+  .login-story > p {
+    font-size: 12px;
+    margin: 0;
+  }
+  .login-capabilities,
+  .login-note {
+    display: none;
+  }
+  .login-card {
+    width: 100%;
+    padding: 26px;
+  }
+  .login-card h2 {
+    font-size: 18px;
+  }
+  .login-lock {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 20px;
+  }
+  .login-card > p {
+    font-size: 11px;
+    margin-bottom: 24px;
+  }
+  .login-footer {
+    font-size: 9px;
+    align-items: flex-start;
+    gap: 25px;
+  }
+  .login-footer > span:last-child {
+    text-align: right;
+    max-width: 160px;
+  }
+}

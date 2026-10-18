@@ -4,7 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { request } from "@/lib/api";
 import { simulationView } from "@/lib/schemas";
-import { percent, duration } from "@/lib/format";
+import { Icon } from "./Icon";
+import { SimulationResult } from "./SimulationResult";
 const interventionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("timeout"),
@@ -55,12 +56,16 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
       }),
   });
   return (
-    <div className="grid-two">
+    <div className="simulation-layout">
       <form
-        className="panel"
+        className="panel intervention-form"
         onSubmit={(event) => {
           event.preventDefault();
           setValidation("");
+          if (!incidentId && new Date(end) <= new Date(start)) {
+            setValidation("Choose an end time after the window start.");
+            return;
+          }
           const value =
             type === "timeout"
               ? { type, caller, callee, new_timeout_ms: Number(timeout) }
@@ -77,8 +82,17 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
           mutation.mutate(result.data);
         }}
       >
-        <h2>Choose an intervention</h2>
-        <p className="subtle">Recorded span trees · Up to 10,000 events</p>
+        <div className="section-heading">
+          <div className="section-title">
+            <Icon name="flask" size={17} />
+            <h2>Configure a simulation</h2>
+          </div>
+        </div>
+        <p className="form-intro">One change. The same recorded traces.</p>
+        <div className="form-step">
+          <span>1</span>
+          <h3>Choose an intervention</h3>
+        </div>
         <label>
           Intervention
           <select
@@ -112,6 +126,9 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
                 onChange={(event) => setFactor(event.target.value)}
               />
             </label>
+            <p className="field-help">
+              A multiplier of 0.5 tests a node at half its recorded latency.
+            </p>
           </>
         )}
         {type === "timeout" && (
@@ -121,6 +138,7 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
                 Caller service
                 <input
                   required
+                  placeholder="svc:checkout"
                   value={caller}
                   onChange={(event) => setCaller(event.target.value)}
                 />
@@ -129,6 +147,7 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
                 Callee service
                 <input
                   required
+                  placeholder="svc:payments"
                   value={callee}
                   onChange={(event) => setCallee(event.target.value)}
                 />
@@ -144,6 +163,9 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
                 onChange={(event) => setTimeout(event.target.value)}
               />
             </label>
+            <p className="field-help">
+              Change the timeout for this dependency edge.
+            </p>
           </>
         )}
         {type === "cache_hit_rate" && (
@@ -153,6 +175,7 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
                 Service
                 <input
                   required
+                  placeholder="catalog"
                   value={service}
                   onChange={(event) => setService(event.target.value)}
                 />
@@ -161,6 +184,7 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
                 Route template
                 <input
                   required
+                  placeholder="/products/{id}"
                   value={route}
                   onChange={(event) => setRoute(event.target.value)}
                 />
@@ -177,34 +201,47 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
                 onChange={(event) => setHitRate(event.target.value)}
               />
             </label>
+            <p className="field-help">
+              A hit rate of 0.9 represents a 90% cache hit rate.
+            </p>
           </>
         )}
-        {incidentId ? (
-          <p className="notice mono">
-            Incident {incidentId.slice(0, 8)} · recorded incident window
-          </p>
-        ) : (
-          <div className="form-grid">
-            <label>
-              Window start (local)
-              <input
-                type="datetime-local"
-                required
-                value={start}
-                onChange={(event) => setStart(event.target.value)}
-              />
-            </label>
-            <label>
-              Window end (local)
-              <input
-                type="datetime-local"
-                required
-                value={end}
-                onChange={(event) => setEnd(event.target.value)}
-              />
-            </label>
+        <div className="form-section">
+          <div className="form-step">
+            <span>2</span>
+            <h3>Select the recorded window</h3>
           </div>
-        )}
+          {incidentId ? (
+            <div className="incident-window">
+              <Icon name="clock" size={16} />
+              <div>
+                <strong>Incident {incidentId.slice(0, 8)}</strong>
+                <span>Using the recorded incident window</span>
+              </div>
+            </div>
+          ) : (
+            <div className="form-grid">
+              <label>
+                Window start (local)
+                <input
+                  type="datetime-local"
+                  required
+                  value={start}
+                  onChange={(event) => setStart(event.target.value)}
+                />
+              </label>
+              <label>
+                Window end (local)
+                <input
+                  type="datetime-local"
+                  required
+                  value={end}
+                  onChange={(event) => setEnd(event.target.value)}
+                />
+              </label>
+            </div>
+          )}
+        </div>
         {validation && (
           <p role="alert" className="error">
             {validation}
@@ -215,84 +252,20 @@ export function CounterfactualPanel({ incidentId }: { incidentId?: string }) {
             {mutation.error.message}
           </p>
         )}
-        <button disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Simulating recorded traces…"
-            : "Run deterministic simulation →"}
-        </button>
-      </form>
-      <section className="panel">
-        <div className="actions" style={{ justifyContent: "space-between" }}>
-          <h2>Projected outcome</h2>
-          <span className="badge cyan">SIMULATED</span>
+        <div className="form-actions">
+          <button disabled={mutation.isPending}>
+            {mutation.isPending
+              ? "Simulating recorded traces…"
+              : "Run simulation"}
+            <Icon name="arrow" size={15} />
+          </button>
         </div>
-        {mutation.data ? (
-          <>
-            <h2 style={{ marginTop: 26, color: "var(--lime)" }}>
-              {mutation.data.verdict}
-            </h2>
-            <div className="simulation-bars">
-              {["error_rate", "p95_ms", "p99_ms"].map((metric) => {
-                const report = mutation.data!,
-                  before = report.original[metric],
-                  after = report.counterfactual[metric],
-                  maximum = Math.max(before, after, 0.001);
-                const format = metric === "error_rate" ? percent : duration;
-                return (
-                  <div key={metric} style={{ marginBottom: 22 }}>
-                    <span className="metric-label">
-                      {metric.replaceAll("_", " ")}
-                    </span>
-                    {[
-                      ["Recorded", before],
-                      ["Simulated", after],
-                    ].map(([label, value], index) => (
-                      <div className="bar-row" key={String(label)}>
-                        <span className="subtle">{label}</span>
-                        <div className="bar-track">
-                          <div
-                            className={`bar-fill ${index ? "after" : ""}`}
-                            style={{
-                              width: `${(Number(value) / maximum) * 100}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="mono">{format(Number(value))}</span>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-            <p
-              className={
-                mutation.data.unsimulatable_percent >= 20 ? "error" : "subtle"
-              }
-            >
-              {mutation.data.unsimulatable_percent.toFixed(1)}% of traces could
-              not be simulated.
-            </p>
-            <h3>Assumptions</h3>
-            <ul className="assumptions">
-              {mutation.data.assumptions.map((value) => (
-                <li key={value}>{value}</li>
-              ))}
-            </ul>
-            <p className="hint mono">
-              result {mutation.data.result_digest.slice(0, 24)}…
-            </p>
-          </>
-        ) : (
-          <div className="empty">
-            <div className="orbit">◎</div>
-            <h2>Test the hypothesis.</h2>
-            <p>
-              Compare a recorded outcome with a deterministic simulation. The
-              result includes its assumptions and evidence limits.
-            </p>
-          </div>
-        )}
-      </section>
+        <p className="form-footnote">
+          <Icon name="shield" size={13} />
+          Recorded span trees · Up to 10,000 events
+        </p>
+      </form>
+      <SimulationResult data={mutation.data} busy={mutation.isPending} />
     </div>
   );
 }

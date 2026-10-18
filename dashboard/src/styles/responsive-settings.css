@@ -1,0 +1,75 @@
+@media (max-width: 600px) {
+  .settings-jump {
+    gap: 21px;
+    margin-bottom: 25px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .settings-jump a {
+    font-size: 10px;
+  }
+  .settings-section {
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+    gap: 16px;
+  }
+  .key-create-form {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .key-create-form label {
+    flex-basis: 100%;
+  }
+  .key-create-form button {
+    margin-left: auto;
+  }
+  .key-row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .key-row-actions {
+    margin-left: auto;
+  }
+  .revoke-confirm {
+    flex-wrap: wrap;
+  }
+  .revoke-confirm > span {
+    flex-basis: 100%;
+    text-align: right;
+  }
+  .config-list {
+    font-size: 11px;
+  }
+  .config-list dt {
+    font-size: 11px;
+  }
+  .sdk-note p {
+    font-size: 10px;
+  }
+  pre {
+    padding: 15px;
+    font-size: 10px;
+  }
+  pre code {
+    font-size: 10px;
+  }
+  .settings-content .section-heading {
+    gap: 8px;
+  }
+  .sampling-setting {
+    gap: 18px;
+  }
+  .query-error {
+    flex-wrap: wrap;
+    padding: 17px;
+  }
+  .query-error > div {
+    flex: 1;
+  }
+  .query-error button {
+    margin-left: 32px;
+  }
+  .empty {
+    padding: 42px 20px;
+  }
+}

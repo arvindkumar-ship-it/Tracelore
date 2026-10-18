@@ -13,9 +13,9 @@ export default function CounterfactualPage() {
   return (
     <>
       <PageHeading
-        eyebrow="04 / WHAT-IF LAB"
-        title="Before you ship the fix."
-        description="Explore timeout, cache, and latency changes against recorded traces. Every result is labeled as a simulation."
+        eyebrow="Deterministic simulation"
+        title="What-if lab"
+        description="Test a hypothesis against recorded traces. See the possible outcome before you ship the fix."
       />
       <Suspense fallback={<div className="panel skeleton" />}>
         <Lab />

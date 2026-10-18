@@ -1,0 +1,105 @@
+.graph-canvas {
+  height: 550px;
+  background: #fbfaf7;
+}
+.graph-legend {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  flex-wrap: wrap;
+}
+.graph-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.graph-legend i {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border: 1px solid #b9b8ac;
+  background: white;
+  border-radius: 2px;
+}
+.graph-legend .affected {
+  background: #f5ecd9;
+  border-color: #d3b98c;
+}
+.graph-legend .root {
+  border: 2px solid #be886c;
+  background: #fcf4eb;
+}
+.graph-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding: 13px 22px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.react-flow__node.service-node {
+  border: 1px solid #d6d3ca;
+  border-radius: 7px;
+  background: white;
+  color: var(--text);
+  box-shadow: 0 2px 4px rgb(40 30 10 / 3%);
+}
+.react-flow__node.service-node.anomalous {
+  border-color: #d0b78e;
+  background: #fffcf6;
+}
+.react-flow__node.service-node.root-candidate {
+  border: 1.5px solid #bb8060;
+  background: #fdf7ef;
+}
+.dependency-node {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: 10px;
+}
+.dependency-node-icon {
+  color: #92836d;
+}
+.dependency-node strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.dependency-node div > span {
+  display: block;
+  color: #786953;
+  font-size: 9px;
+  margin-top: 4px;
+}
+.react-flow__handle {
+  background: #b6aa98;
+  border: 2px solid white;
+  width: 6px;
+  height: 6px;
+}
+.react-flow__controls {
+  box-shadow: 0 1px 5px rgb(40 30 10 / 8%);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.react-flow__controls button {
+  background: white;
+  color: #655e52;
+  border-radius: 0;
+  border-color: var(--line);
+  min-height: 28px;
+}
+.react-flow__controls button:hover {
+  background: var(--soft);
+}
+.react-flow__attribution {
+  font-size: 9px;
+  color: #776d5e;
+  background: #fbfaf7;
+}

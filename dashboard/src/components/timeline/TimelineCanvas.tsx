@@ -1,17 +1,18 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Trace } from "@/lib/schemas";
+import { Icon } from "../Icon";
 import { duration } from "@/lib/format";
 import { layout } from "./layout";
 import { buildGrid, hitTest } from "./hitTest";
 
 const COLORS = [
-  "#a3d9a5",
-  "#7dbfda",
-  "#c3a5db",
-  "#ddbc83",
-  "#7bbfb6",
-  "#d99f9f",
+  "#829579",
+  "#78979e",
+  "#9c8d9e",
+  "#ba9a64",
+  "#7e9a90",
+  "#b58377",
 ];
 const ROW_HEIGHT = 27,
   HEIGHT = 335,
@@ -54,25 +55,30 @@ export function TimelineCanvas({
     element.width = width * ratio;
     element.height = HEIGHT * ratio;
     context.scale(ratio, ratio);
-    context.fillStyle = "#0d151f";
+    context.fillStyle = "#fcfbf8";
     context.fillRect(0, 0, width, HEIGHT);
     const plotWidth = width - LABEL_WIDTH - 15,
       range = Math.max(1, view[1] - view[0]);
-    context.font = "10px Consolas,monospace";
+    context.font =
+      "11px Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif";
     for (let tick = 0; tick <= 5; tick++) {
       const x = LABEL_WIDTH + (plotWidth * tick) / 5;
-      context.strokeStyle = "#243343";
+      context.strokeStyle = "#eae7e0";
       context.beginPath();
       context.moveTo(x, 24);
       context.lineTo(x, HEIGHT);
       context.stroke();
-      context.fillStyle = "#7b8c9e";
+      context.fillStyle = "#786f61";
+      context.textAlign = tick === 5 ? "right" : "left";
       context.fillText(
         duration((view[0] - minimum + (range * tick) / 5) / 1000),
-        x + 4,
+        tick === 5 ? x - 4 : x + 4,
         14,
       );
     }
+    context.textAlign = "left";
+    context.fillStyle = "#786f61";
+    context.fillText("Service", 8, 14);
     for (const span of positioned) {
       const y = 30 + span.row * ROW_HEIGHT - scroll;
       if (y < 20 || y > HEIGHT || span.end < view[0] || span.start > view[1])
@@ -94,12 +100,12 @@ export function TimelineCanvas({
         selected === trace.spans.event_id[index]
       ) {
         context.strokeStyle =
-          trace.spans.status[index] === "error" ? "#ff7c8a" : "#eef9df";
+          trace.spans.status[index] === "error" ? "#b85849" : "#5c6653";
         context.lineWidth = 2;
         context.strokeRect(x, y, length, 17);
       }
       context.restore();
-      context.fillStyle = "#a5b5c4";
+      context.fillStyle = "#625d53";
       context.fillText(
         trace.dict.services[trace.spans.service_idx[index]].slice(0, 16),
         8,
@@ -146,7 +152,8 @@ export function TimelineCanvas({
         </div>
         <div className="actions">
           <button
-            className="ghost"
+            className="ghost compact"
+            aria-label="Zoom in"
             onClick={() =>
               setView(([start, end]) => {
                 const margin = (end - start) / 4;
@@ -154,13 +161,16 @@ export function TimelineCanvas({
               })
             }
           >
-            +
+            <Icon name="plus" size={14} />
           </button>
-          <button className="ghost" onClick={() => setView([minimum, maximum])}>
+          <button
+            className="ghost compact"
+            onClick={() => setView([minimum, maximum])}
+          >
             Reset
           </button>
           <button
-            className="ghost"
+            className="ghost compact"
             aria-label="Pan left"
             onClick={() =>
               setView(([a, b]) => [
@@ -169,10 +179,10 @@ export function TimelineCanvas({
               ])
             }
           >
-            ←
+            <Icon name="arrowLeft" size={14} />
           </button>
           <button
-            className="ghost"
+            className="ghost compact"
             aria-label="Pan right"
             onClick={() =>
               setView(([a, b]) => [
@@ -181,7 +191,7 @@ export function TimelineCanvas({
               ])
             }
           >
-            →
+            <Icon name="arrow" size={14} />
           </button>
         </div>
       </div>
@@ -220,11 +230,11 @@ export function TimelineCanvas({
         className="trace-mobile"
         onScroll={(event) => setMobileScroll(event.currentTarget.scrollTop)}
       >
-        <div style={{ height: positioned.length * 35, position: "relative" }}>
+        <div style={{ height: positioned.length * 44, position: "relative" }}>
           {positioned
             .slice(
-              Math.max(0, Math.floor(mobileScroll / 35) - 2),
-              Math.floor(mobileScroll / 35) + 15,
+              Math.max(0, Math.floor(mobileScroll / 44) - 2),
+              Math.floor(mobileScroll / 44) + 15,
             )
             .map((span, offset) => (
               <button
@@ -232,10 +242,11 @@ export function TimelineCanvas({
                 style={{
                   position: "absolute",
                   top:
-                    (Math.max(0, Math.floor(mobileScroll / 35) - 2) + offset) *
-                    35,
+                    (Math.max(0, Math.floor(mobileScroll / 44) - 2) + offset) *
+                    44,
                   left: Math.min(span.depth, 6) * 9,
                 }}
+                aria-pressed={selected === trace.spans.event_id[span.index]}
                 onClick={() => onSelect(trace.spans.event_id[span.index])}
               >
                 {trace.spans.status[span.index] === "error" ? "! " : ""}
@@ -247,8 +258,13 @@ export function TimelineCanvas({
         </div>
       </div>
       <p className="hint">
-        {trace.spans.id.length.toLocaleString()} recorded spans · Scroll for
-        lanes, zoom and pan for time · Red outline indicates an error
+        <span className="desktop-hint">
+          {trace.spans.id.length.toLocaleString()} recorded spans · Scroll for
+          lanes, zoom and pan for time · Red outline indicates an error
+        </span>
+        <span className="mobile-hint">
+          Tap a span or use the event cursor to inspect its recorded state.
+        </span>
       </p>
     </>
   );

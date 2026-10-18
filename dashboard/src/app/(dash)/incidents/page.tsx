@@ -5,12 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { request } from "@/lib/api";
 import { incidentPage } from "@/lib/schemas";
 import type { components } from "@/lib/generated";
-import { percent } from "@/lib/format";
+import { duration, percent } from "@/lib/format";
 import { IncidentTable } from "@/components/IncidentTable";
 import { PageHeading, QueryState } from "@/components/QueryState";
+import { Icon, type IconName } from "@/components/Icon";
+
 export default function IncidentsPage() {
   const [status, setStatus] = useState(""),
-    [cursor, setCursor] = useState<string | null>(null);
+    [cursor, setCursor] = useState<string | null>(null),
+    [search, setSearch] = useState("");
   const query = useQuery({
     queryKey: ["incidents", "list", status, cursor],
     queryFn: () =>
@@ -23,118 +26,252 @@ export default function IncidentsPage() {
     queryKey: ["live"],
     enabled: false,
   });
-  const items = query.data?.items ?? [];
   const { data: connected = false } = useQuery<boolean>({
     queryKey: ["live-connection"],
     enabled: false,
   });
+  const items = query.data?.items ?? [];
+  const visible = items.filter((item) =>
+    `${item.services.join(" ")} ${item.id}`
+      .toLowerCase()
+      .includes(search.trim().toLowerCase()),
+  );
+  const metrics: {
+    label: string;
+    value: string;
+    foot: string;
+    icon: IconName;
+  }[] = [
+    {
+      label: "Event throughput",
+      value: live ? `${live.events_per_sec.toFixed(0)}` : "—",
+      foot: "Events / second",
+      icon: "activity",
+    },
+    {
+      label: "Request error rate",
+      value: live ? percent(live.error_rate) : "—",
+      foot: "Server spans · last 10 seconds",
+      icon: "incidents",
+    },
+    {
+      label: "Open in this view",
+      value: query.data
+        ? String(items.filter((item) => item.status === "open").length)
+        : "—",
+      foot: "Grouped, deduplicated signals",
+      icon: "layers",
+    },
+    {
+      label: "Observed services",
+      value: live ? String(Object.keys(live.per_service).length) : "—",
+      foot: "Active in the last 10 seconds",
+      icon: "server",
+    },
+  ];
   return (
     <>
       <PageHeading
-        eyebrow="01 / SIGNAL INTELLIGENCE"
-        title="Incidents, in focus."
-        description="Find the first deviation. Follow its path through your system."
+        eyebrow="System observatory"
+        title="Incidents"
+        description="A clear view of what changed, where it started, and what needs your attention."
         action={
-          <span className={`badge ${connected ? "green" : ""}`}>
-            {connected ? "LIVE CONNECTION" : "WAITING FOR LIVE DATA"}
-          </span>
+          <Link className="button secondary" href="/settings#sdk-setup">
+            <Icon name="plus" size={16} />
+            Connect a service
+          </Link>
         }
       />
       <div className="metrics">
-        {[
-          [
-            "Event throughput",
-            live ? `${live.events_per_sec.toFixed(0)}/s` : "—",
-            "Ingested over the last 10 seconds",
-          ],
-          [
-            "Request error rate",
-            live ? percent(live.error_rate) : "—",
-            "Server spans · rolling 10 seconds",
-          ],
-          [
-            "Open in this view",
-            String(items.filter((item) => item.status === "open").length),
-            "Grouped, deduplicated signals",
-          ],
-          [
-            "Observed services",
-            live ? String(Object.keys(live.per_service).length) : "—",
-            "Active over the last 10 seconds",
-          ],
-        ].map(([label, value, foot]) => (
+        {metrics.map(({ label, value, foot, icon }) => (
           <div className="metric" key={label}>
-            <div className="metric-label">{label}</div>
+            <div className="metric-label">
+              {label}
+              <Icon name={icon} size={16} />
+            </div>
             <div className="metric-value">{value}</div>
             <div className="metric-foot">{foot}</div>
           </div>
         ))}
       </div>
-      <QueryState
-        loading={query.isPending}
-        error={query.error}
-        retry={() => void query.refetch()}
-      />
-      {query.data && (
-        <section className="panel panel-flush">
+      <div className="overview-grid">
+        <section className="panel panel-flush incident-panel">
           <div className="panel-head">
-            <h2>
-              Incident stream{" "}
-              <span className="subtle mono"> / {items.length}</span>
-            </h2>
-            <div className="filters">
-              <select
-                aria-label="Filter incident status"
-                value={status}
-                onChange={(event) => {
-                  setStatus(event.target.value);
-                  setCursor(null);
-                }}
-              >
-                <option value="">All statuses</option>
-                <option value="open">Open</option>
-                <option value="resolved">Resolved</option>
-              </select>
+            <div>
+              <h2>
+                Incident stream <span className="count">{items.length}</span>
+              </h2>
+              <p>Evidence-backed deviations across your system.</p>
+            </div>
+            <button
+              className="icon-button"
+              aria-label="Refresh incidents"
+              title="Refresh incidents"
+              disabled={query.isFetching}
+              onClick={() => void query.refetch()}
+            >
+              <Icon name="refresh" size={17} />
+            </button>
+          </div>
+          <div className="table-toolbar">
+            <div className="search-field">
+              <Icon name="search" size={16} />
+              <input
+                aria-label="Search incidents in this page"
+                placeholder="Search service or incident…"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </div>
+            <select
+              aria-label="Filter incident status"
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value);
+                setCursor(null);
+              }}
+            >
+              <option value="">All statuses</option>
+              <option value="open">Open</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+          <div className="table-query">
+            <QueryState
+              loading={query.isPending}
+              error={query.error}
+              retry={() => void query.refetch()}
+            />
+          </div>
+          {query.data &&
+            (visible.length ? (
+              <IncidentTable items={visible} />
+            ) : (
+              <div className="empty">
+                <span className="empty-icon">
+                  <Icon
+                    name={search || status ? "search" : "activity"}
+                    size={24}
+                  />
+                </span>
+                <h3>
+                  {search || status
+                    ? "No matching incidents"
+                    : "All quiet, so far."}
+                </h3>
+                <p>
+                  {search || status
+                    ? "Try another service name or clear the filters to see more of this incident stream."
+                    : "Incidents appear here when recorded evidence supports a deviation. Connect a service to start building its normal history."}
+                </p>
+                {search || status ? (
+                  <button
+                    className="secondary"
+                    onClick={() => {
+                      setSearch("");
+                      setStatus("");
+                      setCursor(null);
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                ) : (
+                  <Link className="button secondary" href="/settings#sdk-setup">
+                    Connect your first service
+                    <Icon name="arrow" size={15} />
+                  </Link>
+                )}
+              </div>
+            ))}
+          <div className="table-footer">
+            <span>
+              {query.data
+                ? `${visible.length} ${visible.length === 1 ? "incident" : "incidents"} in this page`
+                : "Loading incident stream"}
+            </span>
+            <div className="actions">
+              {cursor && (
+                <button className="text-button" onClick={() => setCursor(null)}>
+                  <Icon name="arrowLeft" size={14} />
+                  Newest
+                </button>
+              )}
+              {query.data?.next_cursor && (
+                <button
+                  className="secondary compact"
+                  onClick={() => setCursor(query.data!.next_cursor)}
+                >
+                  Next page
+                  <Icon name="arrow" size={14} />
+                </button>
+              )}
             </div>
           </div>
-          {items.length ? (
-            <IncidentTable items={items} />
-          ) : (
-            <div className="empty">
-              <div className="orbit">◉</div>
-              <h2>All quiet, so far.</h2>
-              <p>
-                Connect a service and train its normal history. Incidents appear
-                here when recorded evidence supports a deviation.
-              </p>
-              <Link href="/settings">
-                <button>Connect your first service →</button>
-              </Link>
-            </div>
-          )}
-          {query.data.next_cursor && (
-            <div style={{ padding: 20 }}>
-              <button
-                className="ghost"
-                onClick={() => setCursor(query.data!.next_cursor)}
-              >
-                Next page →
-              </button>
-            </div>
-          )}
-          {cursor && (
-            <div style={{ padding: 20 }}>
-              <button className="ghost" onClick={() => setCursor(null)}>
-                ← Newest incidents
-              </button>
-            </div>
-          )}
         </section>
-      )}
-      <div className="notice">
-        Detection starts after an endpoint has at least 24 hours of clean
-        history. A quiet view can also mean a service is warming up; check the
-        pipeline metrics.
+        <section className="panel panel-flush service-panel">
+          <div className="panel-head">
+            <div>
+              <h2>Service activity</h2>
+              <p>Rolling 10-second window</p>
+            </div>
+            <span
+              className={`status-dot ${connected ? "is-live" : ""}`}
+              role="img"
+              aria-label={connected ? "Live data" : "Waiting for connection"}
+            />
+          </div>
+          <div className="service-list">
+            {live && Object.entries(live.per_service).length ? (
+              Object.entries(live.per_service).map(([name, service]) => (
+                <div className="service-item" key={name}>
+                  <div className="service-title">
+                    <span className="service-icon">
+                      <Icon name="server" size={15} />
+                    </span>
+                    <strong>{name}</strong>
+                    <span
+                      className={`badge ${service.errors ? "amber" : "green"}`}
+                    >
+                      {service.errors
+                        ? `${service.errors} errors`
+                        : "No errors"}
+                    </span>
+                  </div>
+                  <div className="service-meta">
+                    <span>{service.count.toLocaleString()} events</span>
+                    <span>
+                      p95 <b>{duration(service.p95_ms)}</b>
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="service-empty">
+                <Icon name="server" size={22} />
+                <h3>
+                  {connected
+                    ? "Waiting for service events"
+                    : "Waiting for live data"}
+                </h3>
+                <p>
+                  Service traffic and latency appear here when telemetry
+                  arrives.
+                </p>
+              </div>
+            )}
+          </div>
+          <Link className="section-link" href="/graph">
+            Explore dependencies
+            <Icon name="arrow" size={15} />
+          </Link>
+        </section>
+      </div>
+      <div className="page-note">
+        <Icon name="info" size={16} />
+        <p>
+          Detection starts after an endpoint has 24 hours of clean history. A
+          quiet view can also mean a service is still warming up.
+        </p>
       </div>
     </>
   );

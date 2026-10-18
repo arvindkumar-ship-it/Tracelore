@@ -1,0 +1,128 @@
+.inspector-description {
+  font-size: 12px;
+  margin: -7px 0 20px;
+}
+.state-tabs {
+  display: flex;
+  gap: 21px;
+  margin: 0 0 14px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.state-tabs button {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 9px 0 11px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--muted);
+  background: none;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.state-tabs button:hover {
+  color: var(--text);
+  background: none;
+}
+.state-tabs button[aria-selected="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.inspector-empty {
+  padding: 45px 16px;
+}
+.inspector-empty > svg {
+  color: #a59a86;
+  margin-bottom: 15px;
+}
+.inspector-empty p {
+  margin-bottom: 0;
+}
+.inspector-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  gap: 24px;
+}
+.inspector-row:last-child {
+  border: 0;
+}
+.inspector-key {
+  color: #655e52;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.inspector-value {
+  color: var(--muted);
+  max-width: 65%;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.changed {
+  background: #f8f7ef;
+}
+.inspector-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 15px;
+  margin-top: 15px;
+  color: #776d5e;
+  font-size: 10px;
+}
+.inspector-footer .mono {
+  font-size: 10px;
+}
+.replay-form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+  padding: 24px;
+}
+.replay-form-intro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: #9a876a;
+  background: #f9f7f2;
+  flex-shrink: 0;
+}
+.replay-form-intro h2 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.replay-form-intro p {
+  font-size: 11px;
+  margin: 0;
+}
+.replay-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.replay-controls label {
+  font-size: 11px;
+}
+.replay-controls input {
+  margin-bottom: 0;
+  min-width: 230px;
+}
+.replay-controls button {
+  min-height: 41px;
+}

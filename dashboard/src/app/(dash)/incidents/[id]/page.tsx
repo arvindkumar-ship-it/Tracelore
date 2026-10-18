@@ -7,6 +7,7 @@ import { request } from "@/lib/api";
 import { incident, rcaView } from "@/lib/schemas";
 import { percent } from "@/lib/format";
 import { PageHeading, QueryState } from "@/components/QueryState";
+import { Icon } from "@/components/Icon";
 import { EvidenceList } from "@/components/EvidenceList";
 import { TraceExplorer } from "@/components/TraceExplorer";
 export default function IncidentDetail() {
@@ -63,43 +64,79 @@ export default function IncidentDetail() {
   const item = detail.data;
   return (
     <>
-      <Link className="subtle" href="/incidents">
-        ← Incident stream
+      <Link className="back-link" href="/incidents">
+        <Icon name="arrowLeft" size={14} />
+        Incident stream
       </Link>
       <PageHeading
-        eyebrow={`INC-${id.slice(0, 8).toUpperCase()} / ${item.status.toUpperCase()}`}
-        title={item.services.join(" → ")}
-        description={`First deviation: ${new Date(item.start_time).toUTCString()} · ${percent(item.confidence)} signal confidence`}
+        eyebrow={`INC-${id.slice(0, 8).toUpperCase()}`}
+        title={item.services.join(" / ") || "Incident investigation"}
+        description={`First deviation · ${new Date(item.start_time).toUTCString()}`}
         action={
           <div className="actions">
-            <Link href={`/counterfactual?incident=${id}`}>
-              <button>Test a fix →</button>
-            </Link>
             {item.status === "open" && (
               <button
-                className="ghost"
+                className="secondary"
+                aria-expanded={showResolve}
                 onClick={() => setShowResolve((value) => !value)}
               >
-                Resolve
+                <Icon name="check" size={16} />
+                Resolve incident
               </button>
             )}
+            <Link className="button" href={`/counterfactual?incident=${id}`}>
+              <Icon name="flask" size={16} />
+              Test a fix
+              <Icon name="arrow" size={14} />
+            </Link>
           </div>
         }
       />
+      <div className="incident-summary">
+        <span className={`badge ${item.status === "open" ? "amber" : "green"}`}>
+          <span className="badge-dot" />
+          {item.status === "open" ? "Open incident" : "Resolved"}
+        </span>
+        <span>
+          <strong>{percent(item.confidence)}</strong> signal confidence
+        </span>
+        <span>
+          <strong>{item.signal_count ?? item.signals.length}</strong> recorded
+          signals
+        </span>
+        <span>
+          <strong>{item.services.length}</strong> affected{" "}
+          {item.services.length === 1 ? "service" : "services"}
+        </span>
+      </div>
       {showResolve && (
         <form
-          className="panel"
+          className="panel resolution-form"
           onSubmit={(event) => {
             event.preventDefault();
             resolve.mutate();
           }}
         >
-          <h2>Record the verified resolution</h2>
+          <div className="section-heading">
+            <div>
+              <h2>Record the verified resolution</h2>
+              <p>Capture what you found and how you fixed it.</p>
+            </div>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Close resolution form"
+              onClick={() => setShowResolve(false)}
+            >
+              <Icon name="close" />
+            </button>
+          </div>
           <div className="form-grid">
             <label>
               Root cause node
               <input
                 required
+                maxLength={200}
                 value={node}
                 placeholder="db:inventory"
                 onChange={(event) => setNode(event.target.value)}
@@ -109,7 +146,9 @@ export default function IncidentDetail() {
               Root cause
               <input
                 required
+                maxLength={1000}
                 value={cause}
+                placeholder="What caused the deviation?"
                 onChange={(event) => setCause(event.target.value)}
               />
             </label>
@@ -118,49 +157,93 @@ export default function IncidentDetail() {
             Resolution
             <textarea
               required
+              maxLength={1000}
               value={resolution}
+              placeholder="Describe the verified fix…"
               onChange={(event) => setResolution(event.target.value)}
             />
           </label>
-          <button disabled={resolve.isPending}>Save resolution</button>
-          {resolve.error && <p className="error">{resolve.error.message}</p>}
+          {resolve.error && (
+            <p role="alert" className="error">
+              {resolve.error.message}
+            </p>
+          )}
+          <div className="form-actions">
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => setShowResolve(false)}
+            >
+              Cancel
+            </button>
+            <button disabled={resolve.isPending}>
+              {resolve.isPending ? "Saving…" : "Save resolution"}
+              <Icon name="check" size={15} />
+            </button>
+          </div>
         </form>
       )}
-      <div className="grid-two">
-        <section className="panel">
-          <div className="actions" style={{ justifyContent: "space-between" }}>
-            <h2>Root-cause assessment</h2>
-            <span className="badge cyan">
-              SOURCE: {rca.data?.source.toUpperCase() ?? "PENDING"}
+      <div className="grid-two investigation-grid">
+        <section className="panel assessment-panel">
+          <div className="section-heading">
+            <div className="section-title">
+              <Icon name="graph" size={17} />
+              <h2>Root-cause assessment</h2>
+            </div>
+            <span className="badge">
+              {rca.data?.source ?? "Analysis pending"}
             </span>
           </div>
           {rca.data ? (
             <>
-              <h2
-                className="mono"
-                style={{ color: "var(--lime)", marginTop: 24 }}
-              >
-                {rca.data.report.root_cause_node || "Insufficient evidence"}
-              </h2>
-              <p>{rca.data.report.mechanism}</p>
-              <div className="notice">{rca.data.report.suggested_fix}</div>
+              <div className="root-cause">
+                <div className="eyebrow">Leading root cause</div>
+                <h3 className="mono">
+                  {rca.data.report.root_cause_node || "Insufficient evidence"}
+                </h3>
+                <span className="root-confidence">
+                  {percent(rca.data.report.confidence)} confidence
+                </span>
+              </div>
+              <p className="assessment-mechanism">
+                {rca.data.report.mechanism}
+              </p>
+              <div className="suggested-fix">
+                <span className="section-kicker">
+                  <Icon name="check" size={14} />
+                  Suggested next step
+                </span>
+                <p>{rca.data.report.suggested_fix}</p>
+              </div>
               {rca.data.report.insufficient_evidence && (
-                <p className="error">
+                <p className="notice">
                   Evidence is incomplete. This ranking needs further
                   investigation.
                 </p>
               )}
             </>
           ) : (
-            <p>
-              Analysis runs after the incident has collected evidence for 60
-              seconds.
-            </p>
+            <div className="pending-analysis">
+              <Icon name="clock" size={23} />
+              <h3>Gathering the evidence</h3>
+              <p>
+                Analysis starts after the incident has collected evidence for 60
+                seconds. This view updates automatically.
+              </p>
+            </div>
           )}
           <QueryState error={rca.error} retry={() => void rca.refetch()} />
         </section>
-        <section className="panel">
-          <h2>Evidence ledger</h2>
+        <section className="panel evidence-panel">
+          <div className="section-heading">
+            <div className="section-title">
+              <Icon name="layers" size={17} />
+              <h2>Evidence ledger</h2>
+            </div>
+            {rca.data && (
+              <span className="count">{rca.data.bundle.evidence.length}</span>
+            )}
+          </div>
           {rca.data ? (
             <EvidenceList
               value={rca.data}
@@ -170,7 +253,11 @@ export default function IncidentDetail() {
               }}
             />
           ) : (
-            <p>Grounded evidence appears here when analysis completes.</p>
+            <div className="pending-analysis">
+              <Icon name="layers" size={23} />
+              <h3>Evidence is on its way</h3>
+              <p>Grounded evidence appears here when analysis completes.</p>
+            </div>
           )}
         </section>
       </div>
@@ -178,11 +265,20 @@ export default function IncidentDetail() {
         <TraceExplorer traceId={trace} jumpEvent={event} />
       ) : (
         <section className="panel">
-          <h2>Trace timeline</h2>
-          <p>
-            Select a concrete event from the evidence ledger to inspect its
-            trace.
-          </p>
+          <div className="section-heading">
+            <h2>Trace timeline</h2>
+            <span className="badge">Recorded events</span>
+          </div>
+          <div className="empty">
+            <span className="empty-icon">
+              <Icon name="activity" size={24} />
+            </span>
+            <h3>Follow the evidence into a trace</h3>
+            <p>
+              Select a concrete event in the evidence ledger to inspect the
+              request and replay its observed state.
+            </p>
+          </div>
         </section>
       )}
     </>

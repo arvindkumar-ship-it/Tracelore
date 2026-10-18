@@ -9,13 +9,13 @@ export function ScrubBar({
   onChange: (index: number) => void;
 }) {
   return (
-    <div>
+    <div className="scrubber">
       <label className="subtle" htmlFor="scrubber">
-        EVENT CURSOR{" "}
+        Event cursor{" "}
         <span className="mono">
           {index + 1} / {count}
         </span>{" "}
-        · ← → to step
+        <span className="cursor-hint"> · Use ← → to step</span>
       </label>
       <input
         id="scrubber"

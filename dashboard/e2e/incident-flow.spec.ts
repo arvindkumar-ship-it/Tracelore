@@ -10,12 +10,12 @@ test("incident → concrete evidence → scrub → observed-state update", async
 }) => {
   await page.goto("/incidents");
   await page.getByLabel("Dashboard secret").fill(fixture.secret);
-  await page.getByRole("button", { name: "Open observatory →" }).click();
+  await page.getByRole("button", { name: "Open observatory" }).click();
   await page.goto(`/incidents/${fixture.incident_id}`);
   await expect(
     page.getByRole("heading", { name: "Root-cause assessment" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "View span ↗" }).first().click();
+  await page.getByRole("button", { name: "View span" }).first().click();
   await expect(page.getByLabel("Event cursor")).toBeVisible();
   await page.getByLabel("Event cursor").focus();
   await page.getByLabel("Event cursor").press("Home");
@@ -31,7 +31,7 @@ test("10,000 spans scrub within the measured frame budget", async ({
 }) => {
   await page.goto("/incidents");
   await page.getByLabel("Dashboard secret").fill(fixture.secret);
-  await page.getByRole("button", { name: "Open observatory →" }).click();
+  await page.getByRole("button", { name: "Open observatory" }).click();
   await page.goto(`/traces/${fixture.trace_id}`);
   await expect(page.getByLabel("Event cursor")).toBeVisible();
   const frames = await page.evaluate(async () => {
