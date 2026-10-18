@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { request } from "@/lib/api";
 import { incidentPage } from "@/lib/schemas";
 import type { components } from "@/lib/generated";
@@ -24,11 +24,11 @@ export default function IncidentsPage() {
   });
   const { data: live } = useQuery<components["schemas"]["LiveFrame"]>({
     queryKey: ["live"],
-    enabled: false,
+    queryFn: skipToken,
   });
   const { data: connected = false } = useQuery<boolean>({
     queryKey: ["live-connection"],
-    enabled: false,
+    queryFn: skipToken,
   });
   const items = query.data?.items ?? [];
   const visible = items.filter((item) =>
