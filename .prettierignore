@@ -1,0 +1,4 @@
+dashboard/src/lib/generated.ts
+**/node_modules/**
+**/.next/**
+**/dist/**

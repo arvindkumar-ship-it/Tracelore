@@ -1,0 +1,67 @@
+name: CI
+on: [push, pull_request]
+permissions: {contents: read}
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy: {matrix: {python: ['3.11', '3.12']}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '${{ matrix.python }}', cache: pip}
+      - run: pip install -r requirements-dev.lock && pip install --no-deps -e sdk/python -e backend
+      - run: pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-ml.lock
+      - run: ruff check . && mypy backend sdk/python
+      - run: pytest -m unit -q
+      - run: python scripts/check_style.py
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11', cache: pip}
+      - run: python scripts/setup.py
+      - run: docker compose up -d --wait postgres redis redpanda minio
+      - run: pip install -r requirements-dev.lock && pip install --no-deps -e sdk/python -e backend
+      - run: python -m backend.ledger.migrate && python -m scripts.bootstrap
+      - run: pytest -m integration -q
+      - if: always()
+        run: docker compose logs > compose.log
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: {name: integration-logs, path: compose.log}
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm, cache-dependency-path: dashboard/package-lock.json}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -r requirements.lock && pip install --no-deps -e sdk/python -e backend
+      - run: python scripts/setup.py && python -m scripts.generate_contracts
+      - working-directory: dashboard
+        run: npm ci && npm run types && npm run lint && npm test && npm run build
+      - run: git diff --exit-code docs/openapi.json docs/hash_vectors.json dashboard/src/lib/generated.ts
+      - working-directory: sdk/typescript
+        run: npm ci && npm test
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/setup.py && docker compose build api dashboard
+      - run: docker run --rm -v "$PWD/infra/caddy:/etc/caddy:ro" caddy:2.10-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - run: docker run --rm --entrypoint promtool -v "$PWD/infra/prometheus:/etc/prometheus" prom/prometheus:v3.2.1 check rules /etc/prometheus/alerts.yml
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gitleaks/gitleaks-action@v2
+        env: {GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install pip-audit && pip-audit -r requirements.lock
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - working-directory: dashboard
+        run: npm audit --omit=dev --audit-level=high

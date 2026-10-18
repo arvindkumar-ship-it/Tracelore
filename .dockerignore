@@ -1,0 +1,17 @@
+.git
+.env
+.venv
+**/node_modules
+**/.next
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/build
+**/dist
+**/*.egg-info
+**/.hypothesis
+artifacts
+models
+spool
+bench/reports/*.json

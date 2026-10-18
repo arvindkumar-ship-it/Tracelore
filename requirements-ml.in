@@ -1,0 +1,5 @@
+-r requirements.lock
+torch==2.14.1+cpu
+onnx==1.23.2
+onnxruntime==1.31.0
+sentence-transformers>=3.4,<6
