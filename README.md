@@ -21,25 +21,7 @@ You can also replay past state and ask "what if" questions on a real incident.
 
 ## How it works
 
-```mermaid
-%%{init: {'theme':'base','themeVariables':{'background':'#000000','primaryColor':'#000000','primaryTextColor':'#ffffff','primaryBorderColor':'#ffffff','lineColor':'#ffffff','secondaryColor':'#000000','tertiaryColor':'#000000','clusterBkg':'#000000','clusterBorder':'#ffffff','edgeLabelBackground':'#000000','fontFamily':'monospace'}}}%%
-flowchart LR
-    A[Your services<br/>Python / Node SDK] --> B[Ingest service]
-    B --> C[(Ledger<br/>Postgres)]
-    C --> D[Outbox]
-    D --> E[Event stream<br/>Redpanda]
-    E --> F[Detectors<br/>baseline, BOCPD, n-gram]
-    F --> G[Incident fusion]
-    G --> H[Causal graph<br/>and RCA]
-    H --> I[Counterfactual<br/>simulation]
-    C --> J[Replay engine]
-    C --> K[Parquet archive<br/>MinIO]
-    G --> L[API]
-    H --> L
-    I --> L
-    J --> L
-    L --> M[Dashboard]
-```
+![Tracelore architecture](docs/architecture.svg)
 
 ---
 
