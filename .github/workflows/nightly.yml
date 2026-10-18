@@ -1,0 +1,28 @@
+name: Nightly measurement
+on:
+  workflow_dispatch:
+  schedule: [{cron: '20 2 * * *'}]
+permissions: {contents: read}
+jobs:
+  measured-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11', cache: pip}
+      - run: python scripts/setup.py && pip install -r requirements-dev.lock && pip install --no-deps -e sdk/python -e backend
+      - run: docker compose --profile app --profile demo up -d --build --wait --wait-timeout 600
+      - run: pytest -m load -q && python -m scripts.offline_bench
+      - run: python -m scripts.load_ingest --seconds 60 --events-per-second 10000
+      - name: Seed statistical history and calibrate
+        run: python -m bench.synth.history_generator --days 14 --seed 19 && python -m scripts.train_baselines
+      - name: Smaller live fault subset
+        run: python -m bench.runner --bug A01 --seeds 19
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: measured-results
+          path: |
+            benchmarks/
+            bench/reports/

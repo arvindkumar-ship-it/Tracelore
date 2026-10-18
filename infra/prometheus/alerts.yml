@@ -1,0 +1,31 @@
+groups:
+  - name: tracelore
+    rules:
+      - alert: TraceloreIngestErrors
+        expr: sum(rate(tracelore_ingest_events_total{result="rejected"}[5m])) / clamp_min(sum(rate(tracelore_ingest_events_total[5m])),1) > 0.05
+        for: 5m
+        labels: {severity: warning}
+        annotations: {summary: 'More than 5 percent of events rejected'}
+      - alert: TraceloreDetectorLag
+        expr: tracelore_detector_lag_seconds > 30
+        for: 1m
+        labels: {severity: warning}
+        annotations: {summary: 'Event consumer is over 30 seconds behind'}
+      - alert: TraceloreReplayDigestMismatch
+        expr: tracelore_replay_digest_mismatch_total > 0
+        labels: {severity: critical}
+        annotations: {summary: 'Deterministic replay self-check failed'}
+      - alert: TraceloreChainBreak
+        expr: tracelore_chain_findings_total{kind="break"} > 0
+        labels: {severity: critical}
+        annotations: {summary: 'Hash-chain verification found a break'}
+      - alert: TraceloreKafkaPublishFailures
+        expr: increase(tracelore_kafka_publish_failures_total[5m]) > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations: {summary: 'Durable outbox cannot publish to Kafka'}
+      - alert: TraceloreServiceDown
+        expr: up{job=~"api|ingest|workers|detector"} == 0
+        for: 30s
+        labels: {severity: critical}
+        annotations: {summary: 'An Tracelore service is unavailable'}

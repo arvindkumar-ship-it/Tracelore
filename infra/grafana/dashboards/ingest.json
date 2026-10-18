@@ -1,0 +1,97 @@
+{
+  "title": "Tracelore / ingest",
+  "uid": "tracelore-ingest",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Accepted / duplicate / rejected",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by(result)(rate(tracelore_ingest_events_total[1m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Batch p99",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99,sum by(le)(rate(tracelore_ingest_batch_seconds_bucket[5m])))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Durable ledger p99",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99,sum by(le)(rate(tracelore_ledger_insert_seconds_bucket[5m])))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "SDK capacity losses",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(tracelore_sdk_dropped_events_total)",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

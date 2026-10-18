@@ -1,0 +1,97 @@
+{
+  "title": "Tracelore / pipeline-lag",
+  "uid": "tracelore-pipeline-lag",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Detector lag",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "tracelore_detector_lag_seconds",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Kafka publish failures",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(tracelore_kafka_publish_failures_total[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Replay p99",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99,sum by(le)(rate(tracelore_replay_seconds_bucket[5m])))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Digest mismatches",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "tracelore-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(tracelore_replay_digest_mismatch_total)",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

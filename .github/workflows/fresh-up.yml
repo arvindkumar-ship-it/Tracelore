@@ -1,0 +1,30 @@
+name: Fresh stack
+on: [workflow_dispatch]
+permissions: {contents: read}
+jobs:
+  fresh-up:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python scripts/setup.py
+      - name: Build and start every application service
+        run: |
+          started=$(date +%s)
+          docker compose --profile app up -d --build --wait --wait-timeout 600
+          elapsed=$(( $(date +%s) - started ))
+          echo "Startup seconds: $elapsed" >> "$GITHUB_STEP_SUMMARY"
+          test "$elapsed" -le 300
+      - name: Check health and metrics
+        run: |
+          curl -fsS http://localhost:8000/healthz
+          curl -fsS http://localhost:8001/healthz
+          curl -fsS http://localhost:8000/metrics/ > /tmp/metrics.txt
+          grep -q tracelore_replay_seconds /tmp/metrics.txt
+      - if: always()
+        run: docker compose logs > compose.log
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: {name: startup-logs, path: compose.log}

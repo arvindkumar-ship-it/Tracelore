@@ -1,0 +1,39 @@
+{$SITE_ADDRESS:localhost} {
+	encode zstd gzip
+	request_body {
+		max_size 5MB
+	}
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy same-origin
+		-Server
+	}
+	handle /healthz {
+		reverse_proxy api:8000
+	}
+	handle /ingest {
+		reverse_proxy ingest:8001
+	}
+	handle_path /api/* {
+		@private_metrics path /metrics /metrics/*
+		respond @private_metrics 404
+		reverse_proxy api:8000
+	}
+	handle {
+		reverse_proxy dashboard:3000
+	}
+}
+
+:8081 {
+	request_body {
+		max_size 5MB
+	}
+	handle /healthz {
+		reverse_proxy ingest:8001
+	}
+	handle /ingest {
+		reverse_proxy ingest:8001
+	}
+	respond 404
+}
