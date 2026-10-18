@@ -1,5 +1,4 @@
-import asyncio
-import signal
+﻿import asyncio
 
 from prometheus_client import start_http_server
 from redis.asyncio import Redis
@@ -7,6 +6,7 @@ from redis.asyncio import Redis
 from backend.common.db import create_pool
 from backend.common.logging import configure_logging
 from backend.common.settings import get_settings
+from backend.common.signals import install_stop_handlers
 from backend.ingest.publisher import create_producer
 
 from .jobs import WorkerJobs
@@ -22,8 +22,7 @@ async def main() -> None:
     await producer.start()
     start_http_server(9100)
     scheduler = Scheduler(pool, WorkerJobs(settings, redis, producer).all())
-    for signum in (signal.SIGINT, signal.SIGTERM):
-        asyncio.get_running_loop().add_signal_handler(signum, scheduler.stop.set)
+    install_stop_handlers(scheduler.stop.set)
     try:
         await scheduler.run()
     finally:

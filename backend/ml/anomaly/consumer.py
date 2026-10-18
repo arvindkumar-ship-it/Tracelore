@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import signal
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -14,6 +13,7 @@ from backend.common.db import create_pool
 from backend.common.logging import configure_logging
 from backend.common.metrics import DETECTOR_LAG, TRACE_EVICTIONS
 from backend.common.settings import Settings, get_settings
+from backend.common.signals import install_stop_handlers
 from backend.ingest.publisher import ANOMALIES_TOPIC, EVENTS_TOPIC, create_producer
 
 from .contracts import Signal
@@ -193,8 +193,7 @@ async def main() -> None:
     detector = Detector(pool, redis, producer, settings)
     await detector.restore()
     start_http_server(9101)
-    for signum in (signal.SIGINT, signal.SIGTERM):
-        asyncio.get_running_loop().add_signal_handler(signum, detector.stop.set)
+    install_stop_handlers(detector.stop.set)
     task = asyncio.create_task(detector.maintenance())
     try:
         while not detector.stop.is_set():
