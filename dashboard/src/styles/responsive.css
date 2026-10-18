@@ -1,0 +1,127 @@
+@media (max-width: 1050px) {
+  aside {
+    width: 190px;
+    padding: 24px 14px;
+  }
+  .main {
+    margin-left: 190px;
+    width: calc(100% - 190px);
+  }
+  main {
+    padding: 28px 24px;
+  }
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-two {
+    grid-template-columns: 1fr;
+  }
+  header {
+    padding: 0 24px;
+  }
+}
+@media (max-width: 640px) {
+  aside {
+    position: static;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 15px;
+  }
+  .shell {
+    display: block;
+  }
+  .brand {
+    font-size: 23px;
+  }
+  .workspace,
+  .aside-bottom {
+    display: none;
+  }
+  nav {
+    margin-top: 15px;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 5px;
+  }
+  nav a {
+    font-size: 10px;
+    white-space: nowrap;
+    padding: 7px;
+  }
+  nav a span {
+    display: none;
+  }
+  .main {
+    margin: 0;
+    width: 100%;
+  }
+  header {
+    height: 49px;
+    padding: 0 16px;
+  }
+  main {
+    padding: 25px 16px;
+  }
+  h1 {
+    font-size: 28px;
+  }
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .metrics {
+    gap: 10px;
+  }
+  .metric {
+    padding: 15px;
+  }
+  .metric-value {
+    font-size: 26px;
+  }
+  .panel {
+    padding: 18px;
+  }
+  .panel-flush {
+    padding: 0;
+  }
+  .timeline-wrap {
+    display: none;
+  }
+  .trace-mobile {
+    display: block;
+    height: 330px;
+    overflow: auto;
+  }
+  .trace-mobile button {
+    display: block;
+    background: none;
+    border: 0;
+    color: var(--text);
+    text-align: left;
+    font-size: 11px;
+    line-height: 24px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  footer {
+    padding: 18px 16px;
+  }
+  footer span {
+    display: none;
+  }
+  .graph-canvas {
+    height: 480px;
+  }
+  .bar-row {
+    grid-template-columns: 65px 1fr 65px;
+    gap: 7px;
+  }
+  .login-card {
+    padding: 27px;
+  }
+  .login-card .brand .badge {
+    display: none;
+  }
+}

@@ -1,0 +1,118 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+aside {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 230px;
+  border-right: 1px solid var(--line);
+  padding: 30px 22px;
+  background: #0d141d;
+  display: flex;
+  flex-direction: column;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+.orbit {
+  color: var(--lime);
+  font-size: 36px;
+  line-height: 1;
+}
+.workspace {
+  font-size: 9px;
+  letter-spacing: 1.3px;
+  color: var(--muted);
+  margin: 27px 0 26px;
+}
+.status-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--lime);
+  border-radius: 50%;
+  margin-right: 8px;
+}
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+nav a {
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 7px;
+  color: #9eafc3;
+}
+nav a span {
+  font:
+    10px/22px Consolas,
+    monospace;
+  color: #596b7f;
+}
+nav a[aria-current] {
+  color: var(--lime);
+  background: #1d2b25;
+}
+nav a[aria-current] span {
+  color: var(--lime);
+}
+.aside-bottom {
+  margin-top: auto;
+  padding-top: 60px;
+}
+.aside-bottom p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 25px 0;
+}
+.main {
+  margin-left: 230px;
+  width: calc(100% - 230px);
+}
+header {
+  height: 76px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 38px;
+  color: var(--muted);
+  font-size: 11px;
+}
+header b {
+  margin: 0 12px;
+  color: #405267;
+}
+main {
+  max-width: 1700px;
+  margin: auto;
+  padding: 40px 38px 70px;
+  min-height: calc(100vh - 142px);
+}
+footer {
+  border-top: 1px solid var(--line);
+  padding: 20px 38px;
+  font-size: 9px;
+  letter-spacing: 1.3px;
+  color: #597086;
+  display: flex;
+  justify-content: space-between;
+}
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 29px;
+  gap: 20px;
+}
+.page-heading p {
+  max-width: 690px;
+}
