@@ -1,0 +1,12 @@
+services:
+  detector:
+    build: {context: ., dockerfile: backend/Dockerfile, target: ml}
+    image: tracelore-ml:local
+    mem_limit: 3g
+  workers:
+    build: {context: ., dockerfile: backend/Dockerfile, target: ml}
+    image: tracelore-ml:local
+    mem_limit: 3g
+  api:
+    build: {context: ., dockerfile: backend/Dockerfile, target: inference}
+    image: tracelore-inference:local

@@ -1,0 +1,11 @@
+{
+  "python": "3.11.17",
+  "events": 10000,
+  "replay_ms": 10.91781700051797,
+  "simulation_ms": 142.5490069996158,
+  "encode_1000_ms": 25.4296120001527,
+  "decode_1000_ms": 39.1804980008601,
+  "parquet_to_wire_ratio": 0.08912504351633523,
+  "simulation_digest": "42f08b23497b466cfe72187c5941cbabd771a1b8c499f3bdb43411ff360c9a1a",
+  "scope": "Local CPU/codec measurements; not a Postgres throughput, fault accuracy, or full-stack certification."
+}
